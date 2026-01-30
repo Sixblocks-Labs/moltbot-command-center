@@ -28,12 +28,16 @@ export function ChatPanel({
   }, [rendered.length]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    // Cmd/Ctrl+Enter sends
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       if (!text.trim()) return;
       onSend(text.trim());
       setText('');
+      return;
     }
+
+    // Enter inserts newline; Shift+Enter also inserts newline (default behavior)
   }
 
   return (
@@ -114,7 +118,7 @@ export function ChatPanel({
           </Button>
         </div>
         <div className="mt-2 text-[11px] text-muted-foreground">
-          Enter = send • Shift+Enter = newline
+          Cmd+Enter (Mac) / Ctrl+Enter (Win/Linux) = send • Enter = newline
         </div>
       </div>
     </Card>
