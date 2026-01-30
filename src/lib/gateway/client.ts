@@ -24,7 +24,15 @@ export function useGatewayChat(opts: {
   useEffect(() => {
     if (!url || !token) return;
 
-    const ws = new WebSocket(url);
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket(url);
+    } catch {
+      // e.g. Mixed content (https page trying ws://) can throw synchronously.
+      setConnected(false);
+      return;
+    }
+
     wsRef.current = ws;
 
     ws.onopen = () => {
