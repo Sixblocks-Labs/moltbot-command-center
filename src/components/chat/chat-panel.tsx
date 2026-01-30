@@ -41,7 +41,7 @@ export function ChatPanel({
   }
 
   return (
-    <Card className="min-h-[60vh] md:h-[calc(100dvh-140px)] overflow-hidden">
+    <Card className="min-h-[60vh] md:h-[calc(100dvh-140px)] overflow-visible md:overflow-hidden flex flex-col">
       <div className="flex items-center justify-between border-b px-4 py-3">
         <div>
           <div className="text-sm font-semibold">Chat</div>
@@ -54,7 +54,51 @@ export function ChatPanel({
         </Badge>
       </div>
 
-      <ScrollArea className="h-[calc(100%-140px)] p-4">
+      <div className="p-4 flex-1 overflow-visible md:hidden">
+        <div className="space-y-4">
+          {rendered.map((m) => (
+            <div
+              key={m.id}
+              className={
+                m.role === 'user'
+                  ? 'ml-auto max-w-[80%]'
+                  : 'mr-auto max-w-[80%]'
+              }
+            >
+              <div
+                className={
+                  'rounded-xl px-4 py-3 transition-all duration-200 ' +
+                  (m.role === 'user'
+                    ? 'bg-gradient-to-b from-teal-500/90 to-teal-500/70 text-slate-950 shadow-lg shadow-teal-500/15'
+                    : m.role === 'tool'
+                      ? 'border border-white/10 bg-white/5 backdrop-blur-sm'
+                      : 'border border-white/10 bg-white/5 backdrop-blur-sm hover:shadow-lg hover:shadow-violet-500/10')
+                }
+              >
+                <div className="mb-2 flex items-center justify-between gap-2 text-[11px] text-slate-300/90">
+                  <span className="font-medium">
+                    {m.role === 'user'
+                      ? 'Ryan'
+                      : m.role === 'assistant'
+                        ? 'Peter 💾'
+                        : m.role}
+                  </span>
+                  <span>
+                    {new Date(m.ts).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+                <Markdown content={m.content} />
+              </div>
+            </div>
+          ))}
+          <div ref={bottomRef} />
+        </div>
+      </div>
+
+      <ScrollArea className="hidden md:block h-[calc(100%-140px)] p-4">
         <div className="space-y-4">
           {rendered.map((m) => (
             <div

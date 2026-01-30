@@ -100,7 +100,7 @@ export function BrainPanel() {
   );
 
   return (
-    <Card className="min-h-[60vh] md:h-[calc(100dvh-140px)] overflow-hidden">
+    <Card className="min-h-[60vh] md:h-[calc(100dvh-140px)] overflow-visible md:overflow-hidden">
       <div className="flex items-center justify-between border-b px-4 py-3">
         <div>
           <div className="text-sm font-semibold">{title}</div>
@@ -116,8 +116,8 @@ export function BrainPanel() {
         </div>
       </div>
 
-      <div className="grid h-full grid-cols-[320px_1fr]">
-        <div className="border-r">
+      <div className="grid h-full grid-cols-1 md:grid-cols-[320px_1fr]">
+        <div className="md:border-r">
           <div className="p-3 space-y-2">
             <div className="flex gap-2">
               <Input
@@ -158,7 +158,7 @@ export function BrainPanel() {
             </div>
           </div>
           <Separator />
-          <ScrollArea className="h-[calc(100%-56px)]">
+          <ScrollArea className="h-auto md:h-[calc(100%-56px)]">
             <div className="p-2">
               {viewDocs.map((d) => (
                 <button
