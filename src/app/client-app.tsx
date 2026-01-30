@@ -55,33 +55,29 @@ export default function ClientApp({
     fetch('/api/brain/ensure', { method: 'POST' }).catch(() => {});
   }, []);
 
+  const main =
+    tab === 'dashboard' ? (
+      <MissionControl
+        connected={connected}
+        tokenEstimate={tokenEstimate}
+        sessions={sessions}
+      />
+    ) : tab === 'chat' ? (
+      <ChatPanel connected={connected} messages={messages} onSend={sendUserMessage} />
+    ) : (
+      <BrainPanel />
+    );
+
   return (
     <Shell
       tab={tab}
       connected={connected}
       onTabChange={setTab}
+      left={<SidebarTasks sessions={sessions} tokenEstimate={tokenEstimate} />}
+      main={main}
+      right={<RightToolOutput events={toolEvents} />}
       footerLeft={footerLeft}
       footerRight={footerRight}
-    >
-      <SidebarTasks sessions={sessions} tokenEstimate={tokenEstimate} />
-
-      {tab === 'dashboard' ? (
-        <MissionControl
-          connected={connected}
-          tokenEstimate={tokenEstimate}
-          sessions={sessions}
-        />
-      ) : tab === 'chat' ? (
-        <ChatPanel
-          connected={connected}
-          messages={messages}
-          onSend={sendUserMessage}
-        />
-      ) : (
-        <BrainPanel />
-      )}
-
-      <RightToolOutput events={toolEvents} />
-    </Shell>
+    />
   );
 }

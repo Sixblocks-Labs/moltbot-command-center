@@ -1,42 +1,85 @@
 'use client';
 
-import { PropsWithChildren } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from './logo';
 import { ThemeToggle } from './theme-toggle';
+import { PanelLeft, PanelRight } from 'lucide-react';
 
 export type AppTab = 'dashboard' | 'chat' | 'brain';
 
 export function Shell({
-  children,
   tab,
   connected,
   onTabChange,
+  left,
+  main,
+  right,
   footerLeft,
   footerRight,
-}: PropsWithChildren<{
+}: {
   tab: AppTab;
   connected: boolean;
   onTabChange: (t: AppTab) => void;
+  left: React.ReactNode;
+  main: React.ReactNode;
+  right: React.ReactNode;
   footerLeft?: React.ReactNode;
   footerRight?: React.ReactNode;
-}>) {
+}) {
   return (
-    <div className="min-h-dvh bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       <header className="sticky top-0 z-20 border-b border-white/10 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50">
-        <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-4 px-4 py-3">
-          <Logo />
+        <div className="mx-auto flex max-w-screen-2xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between md:gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <Logo />
 
-          <Tabs value={tab} onValueChange={(v) => onTabChange(v as AppTab)}>
-            <TabsList>
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="chat">Chat</TabsTrigger>
-              <TabsTrigger value="brain">Brain</TabsTrigger>
-            </TabsList>
-          </Tabs>
+            {/* Mobile: sidebar drawers */}
+            <div className="flex items-center gap-2 md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button size="icon" variant="outline" aria-label="Open task tracker">
+                    <PanelLeft className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[92vw] max-w-sm">
+                  <SheetHeader>
+                    <SheetTitle>Task Tracker</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-4">{left}</div>
+                </SheetContent>
+              </Sheet>
 
-          <div className="flex items-center gap-2">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button size="icon" variant="outline" aria-label="Open tool output">
+                    <PanelRight className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[92vw] max-w-sm">
+                  <SheetHeader>
+                    <SheetTitle>Tool Output</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-4">{right}</div>
+                </SheetContent>
+              </Sheet>
+            </div>
+          </div>
+
+          {/* Tabs: scrollable on mobile */}
+          <div className="-mx-1 overflow-x-auto px-1 md:overflow-visible">
+            <Tabs value={tab} onValueChange={(v) => onTabChange(v as AppTab)}>
+              <TabsList className="min-w-max">
+                <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+                <TabsTrigger value="chat">Chat</TabsTrigger>
+                <TabsTrigger value="brain">Brain</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 md:justify-end">
             <div className="flex items-center gap-2">
               <span
                 className={
@@ -62,14 +105,17 @@ export function Shell({
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-screen-2xl grid-cols-[280px_1fr_360px] gap-4 px-4 py-4">
-        {children}
+      {/* Layout: 1 col (<md), 2 cols (md), 3 cols (lg+) */}
+      <div className="mx-auto grid max-w-screen-2xl grid-cols-1 gap-4 px-4 py-4 md:grid-cols-[280px_1fr] lg:grid-cols-[280px_1fr_360px]">
+        <div className="hidden md:block">{left}</div>
+        <div>{main}</div>
+        <div className="hidden lg:block">{right}</div>
       </div>
 
       <footer className="border-t border-white/10">
-        <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-4 px-4 py-3 text-xs text-muted-foreground">
-          <div>{footerLeft}</div>
-          <div>{footerRight}</div>
+        <div className="mx-auto flex max-w-screen-2xl flex-col gap-1 px-4 py-3 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between md:gap-4">
+          <div className="truncate">{footerLeft}</div>
+          <div className="truncate">{footerRight}</div>
         </div>
       </footer>
     </div>
