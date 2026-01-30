@@ -41,7 +41,7 @@ export function ChatPanel({
   }
 
   return (
-    <Card className="h-[calc(100dvh-140px)] overflow-hidden">
+    <Card className="min-h-[60vh] md:h-[calc(100dvh-140px)] overflow-hidden">
       <div className="flex items-center justify-between border-b px-4 py-3">
         <div>
           <div className="text-sm font-semibold">Chat</div>

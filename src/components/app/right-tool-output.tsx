@@ -15,7 +15,7 @@ export function RightToolOutput({ events }: { events: ToolEvent[] }) {
 
   return (
     <aside>
-      <Card className="h-[calc(100dvh-140px)] overflow-hidden">
+      <Card className="min-h-[60vh] md:h-[calc(100dvh-140px)] overflow-hidden">
         <div className="flex items-center justify-between border-b px-3 py-2">
           <div className="flex items-center gap-2">
             <Button

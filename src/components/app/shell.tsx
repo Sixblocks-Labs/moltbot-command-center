@@ -30,7 +30,7 @@ export function Shell({
   footerRight?: React.ReactNode;
 }) {
   return (
-    <div className="min-h-[100svh] min-h-dvh bg-background text-foreground overflow-x-hidden pb-[env(safe-area-inset-bottom)]">
+    <div className="min-h-[100svh] min-h-dvh bg-background text-foreground overflow-x-hidden pb-[env(safe-area-inset-bottom)] flex flex-col">
       <header className="sticky top-0 z-20 border-b border-white/10 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50">
         <div className="mx-auto flex max-w-screen-2xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between md:gap-4">
           <div className="flex items-center justify-between gap-3">
@@ -106,7 +106,7 @@ export function Shell({
       </header>
 
       {/* Layout: 1 col (<md), 2 cols (md), 3 cols (lg+) */}
-      <div className="mx-auto grid max-w-screen-2xl grid-cols-1 gap-4 px-4 py-4 md:grid-cols-[280px_1fr] lg:grid-cols-[280px_1fr_360px]">
+      <div className="mx-auto grid w-full max-w-screen-2xl flex-1 grid-cols-1 gap-4 px-4 py-4 md:grid-cols-[280px_1fr] lg:grid-cols-[280px_1fr_360px]">
         <div className="hidden md:block">{left}</div>
         <div>{main}</div>
         <div className="hidden lg:block">{right}</div>
