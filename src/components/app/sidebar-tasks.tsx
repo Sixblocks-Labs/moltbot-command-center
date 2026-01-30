@@ -5,13 +5,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
-const mockSessions = [
-  { id: 'main', name: 'Main session', status: 'active' as const },
-  { id: 'research', name: 'Research sweep', status: 'idle' as const },
-  { id: 'build', name: 'Build: saas-starter', status: 'done' as const },
-];
+export type SessionRow = {
+  id: string;
+  name: string;
+  status: 'active' | 'idle' | 'done';
+};
 
-export function SidebarTasks() {
+export function SidebarTasks({
+  sessions,
+  tokenEstimate,
+}: {
+  sessions: SessionRow[];
+  tokenEstimate: number;
+}) {
   return (
     <aside className="space-y-4">
       <Card className="p-4">
@@ -26,7 +32,7 @@ export function SidebarTasks() {
         <Separator className="my-3" />
 
         <div className="space-y-2">
-          {mockSessions.map((s) => (
+          {sessions.map((s) => (
             <div
               key={s.id}
               className="flex items-center justify-between rounded-md border px-3 py-2"
@@ -74,7 +80,7 @@ export function SidebarTasks() {
           Token usage display will come from gateway stats.
         </p>
         <Separator className="my-3" />
-        <div className="text-sm">0 tokens</div>
+        <div className="text-sm">~{tokenEstimate.toLocaleString()} tokens</div>
       </Card>
     </aside>
   );

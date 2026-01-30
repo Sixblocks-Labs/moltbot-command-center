@@ -37,9 +37,19 @@ export function Shell({
           </Tabs>
 
           <div className="flex items-center gap-2">
-            <Badge variant={connected ? 'default' : 'secondary'}>
-              {connected ? 'Connected' : 'Offline'}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <span
+                className={
+                  connected
+                    ? 'h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.15)]'
+                    : 'h-2 w-2 rounded-full bg-zinc-500'
+                }
+                aria-hidden
+              />
+              <Badge variant={connected ? 'default' : 'secondary'}>
+                {connected ? 'Connected' : 'Offline'}
+              </Badge>
+            </div>
             <ThemeToggle />
           </div>
         </div>

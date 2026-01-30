@@ -3,45 +3,88 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import type { SessionRow } from '@/components/app/sidebar-tasks';
 
-export function MissionControl() {
+export function MissionControl({
+  connected,
+  tokenEstimate,
+  sessions,
+}: {
+  connected: boolean;
+  tokenEstimate: number;
+  sessions: SessionRow[];
+}) {
+  const activeCount = sessions.filter((s) => s.status === 'active').length;
+
   return (
     <Card className="h-[calc(100dvh-140px)] overflow-hidden">
       <div className="flex items-center justify-between border-b px-4 py-3">
         <div>
-          <div className="text-sm font-semibold">Mission Control</div>
+          <div className="text-sm font-semibold">Dashboard</div>
           <div className="text-xs text-muted-foreground">
-            Morning brief + research rollup.
+            Morning brief + sessions + usage.
           </div>
         </div>
-        <Badge variant="secondary">Draft</Badge>
+        <Badge variant={connected ? 'default' : 'secondary'}>
+          {connected ? 'Live' : 'Offline'}
+        </Badge>
       </div>
 
       <div className="p-4 space-y-4">
         <section className="rounded-xl border bg-card p-4">
-          <div className="text-sm font-semibold">Morning Brief</div>
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-semibold">Morning Brief</div>
+            <Badge variant="outline">Today</Badge>
+          </div>
           <Separator className="my-3" />
           <ul className="space-y-2 text-sm">
-            <li className="text-muted-foreground">Weather: (wire in weather skill)</li>
-            <li className="text-muted-foreground">Today’s tasks: (wire to tasks)</li>
-            <li className="text-muted-foreground">Overnight work: (wire to gateway logs)</li>
-            <li className="text-muted-foreground">Trending content: (wire to SEO/social)</li>
+            <li className="flex items-center justify-between">
+              <span className="text-muted-foreground">Connection</span>
+              <span className="font-medium">{connected ? 'Connected' : 'Offline'}</span>
+            </li>
+            <li className="flex items-center justify-between">
+              <span className="text-muted-foreground">Active sessions</span>
+              <span className="font-medium">{activeCount}</span>
+            </li>
+            <li className="flex items-center justify-between">
+              <span className="text-muted-foreground">Token usage (est.)</span>
+              <span className="font-medium">~{tokenEstimate.toLocaleString()}</span>
+            </li>
+            <li className="flex items-center justify-between">
+              <span className="text-muted-foreground">What you’re working on</span>
+              <span className="font-medium">(next chunk)</span>
+            </li>
           </ul>
         </section>
 
         <section className="rounded-xl border bg-card p-4">
-          <div className="text-sm font-semibold">Afternoon Research</div>
+          <div className="text-sm font-semibold">Task Tracker</div>
           <Separator className="my-3" />
-          <p className="text-sm text-muted-foreground">
-            Latest research report will render here (from ~/clawdbot-brain/research).
-          </p>
+          <div className="space-y-2">
+            {sessions.map((s) => (
+              <div key={s.id} className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{s.name}</span>
+                <Badge
+                  variant={
+                    s.status === 'active'
+                      ? 'default'
+                      : s.status === 'done'
+                        ? 'secondary'
+                        : 'outline'
+                  }
+                >
+                  {s.status}
+                </Badge>
+              </div>
+            ))}
+          </div>
         </section>
 
         <section className="rounded-xl border bg-card p-4">
-          <div className="text-sm font-semibold">Action Items</div>
+          <div className="text-sm font-semibold">Notes</div>
           <Separator className="my-3" />
           <p className="text-sm text-muted-foreground">
-            Recommendations + next moves.
+            Next: plug in weather, trending content, and overnight work summaries.
           </p>
         </section>
       </div>
