@@ -30,7 +30,7 @@ export function Shell({
   footerRight?: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="min-h-[100svh] min-h-dvh bg-background text-foreground overflow-x-hidden pb-[env(safe-area-inset-bottom)]">
       <header className="sticky top-0 z-20 border-b border-white/10 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50">
         <div className="mx-auto flex max-w-screen-2xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between md:gap-4">
           <div className="flex items-center justify-between gap-3">
