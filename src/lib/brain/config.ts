@@ -7,8 +7,9 @@ export const BRAIN_ROOT =
 export const BRAIN_FOLDERS = {
   journal: path.join(BRAIN_ROOT, 'journal'),
   notes: path.join(BRAIN_ROOT, 'notes'),
-  tasks: path.join(BRAIN_ROOT, 'tasks'),
+  ideas: path.join(BRAIN_ROOT, 'ideas'),
   research: path.join(BRAIN_ROOT, 'research'),
+  tasks: path.join(BRAIN_ROOT, 'tasks'),
 } as const;
 
 export type BrainFolderKey = keyof typeof BRAIN_FOLDERS;

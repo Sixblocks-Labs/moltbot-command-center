@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Markdown } from '@/components/chat/markdown';
+import { TagBadge } from './tag-badge';
 
 type DocMeta = {
   id: string;
@@ -18,12 +19,22 @@ type DocMeta = {
   updatedAt: number;
 };
 
+function folderToTag(folder: string) {
+  const f = folder.toLowerCase();
+  if (f.includes('journal')) return 'Journal';
+  if (f.includes('ideas')) return 'Ideas';
+  if (f.includes('notes')) return 'Notes';
+  if (f.includes('research')) return 'Research';
+  return folder;
+}
+
 export function BrainPanel() {
   const [docs, setDocs] = useState<DocMeta[]>([]);
   const [selected, setSelected] = useState<DocMeta | null>(null);
   const [content, setContent] = useState<string>('');
   const [q, setQ] = useState('');
   const [mode, setMode] = useState<'view' | 'edit'>('view');
+  const [sort, setSort] = useState<'date' | 'title' | 'tag'>('date');
 
   async function refresh() {
     await fetch('/api/brain/ensure', { method: 'POST' });
@@ -31,6 +42,18 @@ export function BrainPanel() {
     const json = await res.json();
     setDocs(json.docs);
   }
+
+  const viewDocs = useMemo(() => {
+    const arr = [...docs];
+    if (sort === 'date') {
+      arr.sort((a, b) => b.updatedAt - a.updatedAt);
+    } else if (sort === 'title') {
+      arr.sort((a, b) => a.title.localeCompare(b.title));
+    } else {
+      arr.sort((a, b) => a.folder.localeCompare(b.folder));
+    }
+    return arr;
+  }, [docs, sort]);
 
   useEffect(() => {
     refresh();
@@ -86,7 +109,7 @@ export function BrainPanel() {
 
       <div className="grid h-full grid-cols-[320px_1fr]">
         <div className="border-r">
-          <div className="p-3">
+          <div className="p-3 space-y-2">
             <div className="flex gap-2">
               <Input
                 value={q}
@@ -97,11 +120,38 @@ export function BrainPanel() {
                 Search
               </Button>
             </div>
+
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-[11px] text-muted-foreground">Sort</div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant={sort === 'date' ? 'secondary' : 'outline'}
+                  onClick={() => setSort('date')}
+                >
+                  Date
+                </Button>
+                <Button
+                  size="sm"
+                  variant={sort === 'title' ? 'secondary' : 'outline'}
+                  onClick={() => setSort('title')}
+                >
+                  Title
+                </Button>
+                <Button
+                  size="sm"
+                  variant={sort === 'tag' ? 'secondary' : 'outline'}
+                  onClick={() => setSort('tag')}
+                >
+                  Tag
+                </Button>
+              </div>
+            </div>
           </div>
           <Separator />
           <ScrollArea className="h-[calc(100%-56px)]">
             <div className="p-2">
-              {docs.map((d) => (
+              {viewDocs.map((d) => (
                 <button
                   key={d.id}
                   onClick={() => loadDoc(d)}
@@ -111,9 +161,7 @@ export function BrainPanel() {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="truncate text-sm font-medium">{d.title}</div>
-                    <Badge variant="outline" className="shrink-0">
-                      {d.folder}
-                    </Badge>
+                    <TagBadge tag={folderToTag(d.folder)} />
                   </div>
                   <div className="mt-1 text-[11px] text-muted-foreground">
                     {new Date(d.updatedAt).toLocaleString()}
