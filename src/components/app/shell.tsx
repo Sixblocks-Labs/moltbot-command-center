@@ -24,7 +24,7 @@ export function Shell({
 }>) {
   return (
     <div className="min-h-dvh bg-background text-foreground">
-      <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-20 border-b border-white/10 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50">
         <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-4 px-4 py-3">
           <Logo />
 
@@ -41,13 +41,20 @@ export function Shell({
               <span
                 className={
                   connected
-                    ? 'h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.15)]'
-                    : 'h-2 w-2 rounded-full bg-zinc-500'
+                    ? 'h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_0_6px_rgba(16,185,129,0.12)] animate-pulse'
+                    : 'h-2.5 w-2.5 rounded-full bg-rose-300/40 shadow-[0_0_0_6px_rgba(244,63,94,0.06)]'
                 }
                 aria-hidden
               />
-              <Badge variant={connected ? 'default' : 'secondary'}>
-                {connected ? 'Connected' : 'Offline'}
+              <Badge
+                className={
+                  connected
+                    ? 'bg-emerald-500/10 text-emerald-200 border-emerald-500/20'
+                    : 'bg-white/5 text-slate-300 border-white/10'
+                }
+                variant="outline"
+              >
+                {connected ? 'Online' : 'Offline'}
               </Badge>
             </div>
             <ThemeToggle />
@@ -59,7 +66,7 @@ export function Shell({
         {children}
       </div>
 
-      <footer className="border-t">
+      <footer className="border-t border-white/10">
         <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-4 px-4 py-3 text-xs text-muted-foreground">
           <div>{footerLeft}</div>
           <div>{footerRight}</div>

@@ -67,14 +67,15 @@ export function ChatPanel({
             >
               <div
                 className={
-                  m.role === 'user'
-                    ? 'rounded-xl bg-primary px-4 py-3 text-primary-foreground'
+                  'rounded-xl px-4 py-3 transition-all duration-200 ' +
+                  (m.role === 'user'
+                    ? 'bg-gradient-to-b from-teal-500/90 to-teal-500/70 text-slate-950 shadow-lg shadow-teal-500/15'
                     : m.role === 'tool'
-                      ? 'rounded-xl border bg-muted px-4 py-3'
-                      : 'rounded-xl border bg-card px-4 py-3'
+                      ? 'border border-white/10 bg-white/5 backdrop-blur-sm'
+                      : 'border border-white/10 bg-white/5 backdrop-blur-sm hover:shadow-lg hover:shadow-violet-500/10')
                 }
               >
-                <div className="mb-2 flex items-center justify-between gap-2 text-[11px] opacity-80">
+                <div className="mb-2 flex items-center justify-between gap-2 text-[11px] text-slate-300/90">
                   <span className="font-medium">
                     {m.role === 'user'
                       ? 'Ryan'

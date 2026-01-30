@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Markdown } from '@/components/chat/markdown';
 import { TagBadge } from './tag-badge';
+import { FileText, NotebookPen, Lightbulb, FlaskConical } from 'lucide-react';
 
 type DocMeta = {
   id: string;
@@ -26,6 +27,14 @@ function folderToTag(folder: string) {
   if (f.includes('notes')) return 'Notes';
   if (f.includes('research')) return 'Research';
   return folder;
+}
+
+function TagIcon({ tag }: { tag: string }) {
+  const cls = 'h-4 w-4 text-slate-400';
+  if (tag === 'Journal') return <NotebookPen className={cls} />;
+  if (tag === 'Ideas') return <Lightbulb className={cls} />;
+  if (tag === 'Research') return <FlaskConical className={cls} />;
+  return <FileText className={cls} />;
 }
 
 export function BrainPanel() {
@@ -155,12 +164,16 @@ export function BrainPanel() {
                 <button
                   key={d.id}
                   onClick={() => loadDoc(d)}
-                  className={`w-full rounded-md border px-3 py-2 text-left hover:bg-muted/50 ${
-                    selected?.id === d.id ? 'bg-muted' : ''
-                  }`}
+                  className={
+                    `w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-left backdrop-blur-sm transition-all duration-200 hover:bg-white/7 hover:shadow-lg hover:shadow-teal-500/10 ` +
+                    (selected?.id === d.id ? 'ring-1 ring-teal-500/30' : '')
+                  }
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <div className="truncate text-sm font-medium">{d.title}</div>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <TagIcon tag={folderToTag(d.folder)} />
+                      <div className="truncate text-sm font-medium">{d.title}</div>
+                    </div>
                     <TagBadge tag={folderToTag(d.folder)} />
                   </div>
                   <div className="mt-1 text-[11px] text-muted-foreground">
