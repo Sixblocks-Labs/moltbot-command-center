@@ -1,108 +1,110 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ChatMessage, ToolEvent } from './types';
+import { useEffect, useRef, useState } from 'react';
+import type { ChatEvent, ChatMessage, ToolEvent } from './types';
+import { BrowserGatewayClient } from './ws-client';
 
 function uid() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-export function useGatewayChat(opts: {
-  url: string;
-  token: string;
-}) {
-  const { url, token } = opts;
+function extractTextFromChatEventMessage(msg: any): string {
+  const content = msg?.content;
+  if (!Array.isArray(content)) return '';
+  return content
+    .filter((c) => c && typeof c === 'object' && c.type === 'text')
+    .map((c) => String(c.text ?? ''))
+    .join('');
+}
+
+export function useGatewayChat(opts: { url: string; token: string; sessionKey?: string }) {
+  const { url, token, sessionKey = 'main' } = opts;
 
   const [connected, setConnected] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [toolEvents, setToolEvents] = useState<ToolEvent[]>([]);
-  const wsRef = useRef<WebSocket | null>(null);
 
-  const authPayload = useMemo(
-    () => ({ type: 'auth', token }),
-    [token]
-  );
+  const clientRef = useRef<BrowserGatewayClient | null>(null);
 
   useEffect(() => {
-    if (!url || !token) return;
+    if (!url) return;
 
-    let ws: WebSocket;
-    try {
-      const wsUrl = new URL(url); wsUrl.searchParams.set("token", token); ws = new WebSocket(wsUrl.toString());
-    } catch {
-      // e.g. Mixed content (https page trying ws://) can throw synchronously.
-      setConnected(false);
-      return;
-    }
+    const client = new BrowserGatewayClient({
+      url,
+      token: token || undefined,
+      onHelloOk: () => setConnected(true),
+      onClose: () => setConnected(false),
+      onError: () => setConnected(false),
+      onChatEvent: (evt: ChatEvent) => {
+        if (!evt) return;
 
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      setConnected(true);
-    };
-
-    ws.onclose = () => {
-      setConnected(false);
-    };
-
-    ws.onerror = () => {
-      setConnected(false);
-    };
-
-    ws.onmessage = (evt) => {
-      try {
-        const data = JSON.parse(evt.data as string);
-
-        // Generic mapping: accept both {role, content} and tool-ish payloads.
-        if (data?.type === 'tool' || data?.tool) {
-          setToolEvents((prev) => [
+        if (evt.state === 'error') {
+          setMessages((prev) => [
+            ...prev,
             {
               id: uid(),
-              tool: data.tool ?? data.name ?? 'tool',
-              status: data.status ?? 'running',
-              output: data.output ?? data.result ?? data.text ?? '',
+              role: 'system',
+              content: evt.errorMessage ? `Error: ${evt.errorMessage}` : 'Error',
               ts: Date.now(),
-            },
-            ...prev,
-          ]);
-          return;
-        }
-
-        if (data?.role && data?.content) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: uid(),
-              role: data.role,
-              content: data.content,
-              ts: data.ts ?? Date.now(),
-              meta: data.meta,
+              meta: { runId: evt.runId },
             },
           ]);
           return;
         }
 
-        if (typeof data === 'string') {
-          setMessages((prev) => [
-            ...prev,
-            { id: uid(), role: 'system', content: data, ts: Date.now() },
-          ]);
-        }
-      } catch {
-        // ignore
-      }
-    };
+        const text = extractTextFromChatEventMessage(evt.message);
+
+        // We keep one assistant message per runId and patch it during deltas.
+        setMessages((prev) => {
+          const idx = prev.findIndex(
+            (m) => m.role === 'assistant' && (m.meta as any)?.runId === evt.runId
+          );
+
+          if (idx === -1) {
+            if (!text) return prev;
+            return [
+              ...prev,
+              {
+                id: uid(),
+                role: 'assistant',
+                content: text,
+                ts: Date.now(),
+                meta: { runId: evt.runId, state: evt.state },
+              },
+            ];
+          }
+
+          const next = [...prev];
+          next[idx] = {
+            ...next[idx],
+            content: text || next[idx].content,
+            ts: Date.now(),
+            meta: { ...(next[idx].meta ?? {}), state: evt.state },
+          };
+          return next;
+        });
+      },
+    });
+
+    clientRef.current = client;
+    client.start();
 
     return () => {
-      ws.close();
+      client.stop();
+      clientRef.current = null;
     };
-  }, [url, token, authPayload]);
+  }, [url, token]);
 
   function sendUserMessage(content: string) {
-    const ws = wsRef.current;
     const msg: ChatMessage = { id: uid(), role: 'user', content, ts: Date.now() };
     setMessages((prev) => [...prev, msg]);
 
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(JSON.stringify({ type: 'message', role: 'user', content }));
+    const client = clientRef.current;
+    if (!client || !connected) return;
+
+    client.request('chat.send', {
+      sessionKey,
+      message: content,
+      idempotencyKey: uid(),
+    });
   }
 
   return { connected, messages, toolEvents, sendUserMessage };

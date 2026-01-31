@@ -10,7 +10,9 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Markdown } from '@/components/chat/markdown';
 import { TagBadge } from './tag-badge';
-import { FileText, NotebookPen, Lightbulb, FlaskConical } from 'lucide-react';
+import { NewDocSheet } from './new-doc-sheet';
+import { yyyyMmDd } from '@/lib/brain/dates';
+import { FileText, NotebookPen, Lightbulb, FlaskConical, Zap } from 'lucide-react';
 
 type DocMeta = {
   id: string;
@@ -76,6 +78,48 @@ export function BrainPanel() {
     setContent(json.content);
   }
 
+  async function quickCapture() {
+    const day = yyyyMmDd();
+    const docPath = `journal/${day}.md`;
+
+    // Create if missing (but don't clobber if it exists).
+    try {
+      const res = await fetch(`/api/brain/doc?path=${encodeURIComponent(docPath)}`);
+      if (res.ok) {
+        const json = await res.json();
+        setSelected({
+          id: docPath,
+          path: docPath,
+          title: day,
+          folder: 'journal',
+          updatedAt: Date.now(),
+        });
+        setMode('edit');
+        setContent(json.content ?? '');
+        return;
+      }
+    } catch {
+      // ignore
+    }
+
+    const starter = `# Journal — ${day}\n\n## What I’m trying to make progress on\n\n- \n\n## Notes\n\n- \n`;
+    await fetch('/api/brain/doc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: docPath, content: starter }),
+    });
+
+    await refresh();
+    await loadDoc({
+      id: docPath,
+      path: docPath,
+      title: day,
+      folder: 'journal',
+      updatedAt: Date.now(),
+    });
+    setMode('edit');
+  }
+
   async function save() {
     if (!selected) return;
     await fetch('/api/brain/doc', {
@@ -109,6 +153,22 @@ export function BrainPanel() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={quickCapture}>
+            <Zap className="h-4 w-4 mr-2" /> Quick capture
+          </Button>
+          <NewDocSheet
+            onCreated={async (docPath) => {
+              await refresh();
+              await loadDoc({
+                id: docPath,
+                path: docPath,
+                title: docPath.split('/').pop()?.replace(/\.md$/, '') ?? docPath,
+                folder: docPath.split('/')[0] ?? 'notes',
+                updatedAt: Date.now(),
+              });
+              setMode('edit');
+            }}
+          />
           <Badge variant="secondary">{docs.length}</Badge>
           <Button size="sm" variant="outline" onClick={refresh}>
             Refresh

@@ -15,3 +15,18 @@ export type ToolEvent = {
   output?: string;
   ts: number;
 };
+
+export type ChatEvent = {
+  runId: string;
+  sessionKey: string;
+  seq: number;
+  state: 'delta' | 'final' | 'aborted' | 'error';
+  message?: {
+    role?: string;
+    content?: Array<{ type: string; text?: string }>;
+    timestamp?: number;
+  };
+  errorMessage?: string;
+  usage?: unknown;
+  stopReason?: string;
+};

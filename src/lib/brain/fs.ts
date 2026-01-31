@@ -19,10 +19,14 @@ export type BrainDocMeta = {
 };
 
 function safeJoin(root: string, p: string) {
-  const resolved = path.resolve(root, p);
-  if (!resolved.startsWith(path.resolve(root))) {
+  const rootResolved = path.resolve(root);
+  const resolved = path.resolve(rootResolved, p);
+
+  // Prevent path traversal ("..") and prefix tricks (e.g. /root2 matching /root)
+  if (resolved !== rootResolved && !resolved.startsWith(rootResolved + path.sep)) {
     throw new Error('Invalid path');
   }
+
   return resolved;
 }
 
@@ -59,14 +63,24 @@ export async function listDocs(): Promise<BrainDocMeta[]> {
   return entries;
 }
 
+function assertMarkdownDocPath(docPath: string) {
+  // We only support markdown docs in the brain.
+  // (This also reduces the blast radius of the write endpoint.)
+  if (!docPath.toLowerCase().endsWith('.md')) {
+    throw new Error('Only .md files are allowed');
+  }
+}
+
 export async function readDoc(docPath: string): Promise<string> {
   await ensureBrainFolders();
+  assertMarkdownDocPath(docPath);
   const abs = safeJoin(BRAIN_ROOT, docPath);
   return fs.readFile(abs, 'utf8');
 }
 
 export async function writeDoc(docPath: string, content: string) {
   await ensureBrainFolders();
+  assertMarkdownDocPath(docPath);
   const abs = safeJoin(BRAIN_ROOT, docPath);
   await fs.mkdir(path.dirname(abs), { recursive: true });
   await fs.writeFile(abs, content, 'utf8');

@@ -3,18 +3,53 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import type { SessionRow } from '@/components/app/sidebar-tasks';
+import {
+  Bolt,
+  PenLine,
+  Telescope,
+  Target,
+  ListTodo,
+  Sparkles,
+  FileText,
+} from 'lucide-react';
+import type { JobTemplate } from '@/lib/jobs/store';
+import { JobsSheet } from './jobs-sheet';
 
 export function MissionControl({
   connected,
   tokenEstimate,
   sessions,
+  jobs,
+  onHire,
+  onCreateJob,
+  onUpsertJob,
+  onRemoveJob,
+  onTogglePin,
 }: {
   connected: boolean;
   tokenEstimate: number;
   sessions: SessionRow[];
+  jobs: JobTemplate[];
+  onHire: (job: { id: string; title: string; prompt: string }) => void;
+  onCreateJob: () => JobTemplate;
+  onUpsertJob: (job: JobTemplate) => void;
+  onRemoveJob: (id: string) => void;
+  onTogglePin: (id: string) => void;
 }) {
   const activeCount = sessions.filter((s) => s.status === 'active').length;
+
+  const iconFor = (name?: string) => {
+    const cls = 'h-4 w-4';
+    if (name === 'Bolt') return <Bolt className={cls} />;
+    if (name === 'PenLine') return <PenLine className={cls} />;
+    if (name === 'Telescope') return <Telescope className={cls} />;
+    if (name === 'Target') return <Target className={cls} />;
+    if (name === 'ListTodo') return <ListTodo className={cls} />;
+    if (name === 'Sparkles') return <Sparkles className={cls} />;
+    return <FileText className={cls} />;
+  };
 
   return (
     <Card className="min-h-[60vh] md:h-[calc(100dvh-140px)] overflow-visible md:overflow-hidden">
@@ -22,7 +57,7 @@ export function MissionControl({
         <div>
           <div className="text-sm font-semibold">Dashboard</div>
           <div className="text-xs text-muted-foreground">
-            Morning brief + sessions + usage.
+            A tiny HQ for hiring Peter 💾 to make progress.
           </div>
         </div>
         <Badge variant={connected ? 'default' : 'secondary'}>
@@ -51,10 +86,79 @@ export function MissionControl({
               <span className="font-medium">~{tokenEstimate.toLocaleString()}</span>
             </li>
             <li className="flex items-center justify-between">
-              <span className="text-muted-foreground">What you’re working on</span>
-              <span className="font-medium">(next chunk)</span>
+              <span className="text-muted-foreground">Focus</span>
+              <span className="font-medium">Pick a job → ship a chunk</span>
             </li>
           </ul>
+        </section>
+
+        <section className="rounded-xl border bg-card p-4">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <div className="text-sm font-semibold flex items-center gap-2">
+                Hire Peter <Sparkles className="h-4 w-4 text-teal-300" />
+              </div>
+              <div className="text-xs text-muted-foreground">
+                JTBD mode: you’re not “using an app” — you’re hiring it to make
+                specific progress.
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">{jobs.length} jobs</Badge>
+              <JobsSheet
+                jobs={jobs}
+                onCreate={onCreateJob}
+                onUpsert={onUpsertJob}
+                onRemove={onRemoveJob}
+                onTogglePin={onTogglePin}
+              />
+            </div>
+          </div>
+          <Separator className="my-3" />
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {jobs.map((j) => (
+              <div
+                key={j.id}
+                className="group rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-white/3 p-4 backdrop-blur-sm transition-all duration-200 hover:shadow-lg hover:shadow-teal-500/10 hover:-translate-y-[1px]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/5 border border-white/10 text-slate-200">
+                        {iconFor(j.icon)}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold">
+                          {j.title}
+                        </div>
+                        <div className="truncate text-[11px] text-muted-foreground">
+                          {j.progress}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 text-[11px] text-muted-foreground">
+                      <span className="text-slate-200/80">When:</span> {j.when}
+                    </div>
+                  </div>
+
+                  <Button
+                    size="sm"
+                    className="shrink-0"
+                    onClick={() => onHire({ id: j.id, title: j.title, prompt: j.prompt })}
+                  >
+                    Hire
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3 text-[11px] text-muted-foreground">
+            Tip: the more “circumstance + constraints” you paste, the better the
+            output.
+          </div>
         </section>
 
         <section className="rounded-xl border bg-card p-4">
@@ -78,14 +182,6 @@ export function MissionControl({
               </div>
             ))}
           </div>
-        </section>
-
-        <section className="rounded-xl border bg-card p-4">
-          <div className="text-sm font-semibold">Notes</div>
-          <Separator className="my-3" />
-          <p className="text-sm text-muted-foreground">
-            Next: plug in weather, trending content, and overnight work summaries.
-          </p>
         </section>
       </div>
     </Card>

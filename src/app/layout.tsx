@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Fraunces, Instrument_Sans } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { AuroraBackground } from '@/components/app/aurora';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const sans = Instrument_Sans({ subsets: ['latin'], variable: '--font-sans' });
+const display = Fraunces({ subsets: ['latin'], variable: '--font-display' });
 
 export const metadata: Metadata = {
   title: 'Moltbot Command Center',
@@ -18,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} antialiased`}>
+      <body className={`${sans.variable} ${display.variable} antialiased`}>
         <Providers>
           <AuroraBackground />
           {children}

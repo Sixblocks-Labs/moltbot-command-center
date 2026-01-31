@@ -95,9 +95,16 @@ body {
 
 body {
   @apply bg-background text-foreground;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+    Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   font-feature-settings: "ss01" 1, "ss02" 1;
   position: relative;
   z-index: 1;
+}
+
+/* A tasteful “headline voice” for places that should feel like a title. */
+.font-display {
+  font-family: var(--font-display), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 }
 
 /* App background: deep purple→slate base with ambient aurora shimmer */
