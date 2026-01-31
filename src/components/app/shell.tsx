@@ -44,11 +44,16 @@ export function Shell({
                     <PanelLeft className="h-4 w-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-[92vw] max-w-sm">
-                  <SheetHeader>
+                <SheetContent
+                  side="left"
+                  className="w-[92vw] max-w-sm p-0 overflow-y-auto overscroll-contain"
+                >
+                  <SheetHeader className="border-b border-white/10 bg-background/60 backdrop-blur-xl">
                     <SheetTitle>Task Tracker</SheetTitle>
                   </SheetHeader>
-                  <div className="mt-4">{left}</div>
+                  <div className="px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+                    {left}
+                  </div>
                 </SheetContent>
               </Sheet>
 
@@ -58,11 +63,16 @@ export function Shell({
                     <PanelRight className="h-4 w-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[92vw] max-w-sm">
-                  <SheetHeader>
+                <SheetContent
+                  side="right"
+                  className="w-[92vw] max-w-sm p-0 overflow-y-auto overscroll-contain"
+                >
+                  <SheetHeader className="border-b border-white/10 bg-background/60 backdrop-blur-xl">
                     <SheetTitle>Tool Output</SheetTitle>
                   </SheetHeader>
-                  <div className="mt-4">{right}</div>
+                  <div className="px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+                    {right}
+                  </div>
                 </SheetContent>
               </Sheet>
             </div>
