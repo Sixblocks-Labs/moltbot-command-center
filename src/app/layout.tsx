@@ -8,7 +8,7 @@ const sans = Instrument_Sans({ subsets: ['latin'], variable: '--font-sans' });
 const display = Fraunces({ subsets: ['latin'], variable: '--font-display' });
 
 export const metadata: Metadata = {
-  title: 'Moltbot Command Center',
+  title: "Ryan's Command Center",
   description: 'Daily driver dashboard for working with Peter 💾',
 };
 

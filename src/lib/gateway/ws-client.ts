@@ -126,7 +126,7 @@ export class BrowserGatewayClient {
       maxProtocol: 3,
       client: {
         id: 'webchat',
-        displayName: 'Moltbot Command Center',
+        displayName: "Ryan's Command Center",
         version: '0.1.0',
         platform: navigator.platform ?? 'web',
         mode: 'webchat',
