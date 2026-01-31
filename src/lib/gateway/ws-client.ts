@@ -118,53 +118,61 @@ export class BrowserGatewayClient {
 
     this.connectSent = true;
 
-    const identity = loadOrCreateDeviceIdentity();
     const role = 'operator';
     const scopes = ['operator.read', 'operator.write', 'operator.admin'];
 
-    const signedAt = Date.now();
-
-    const payload = buildDeviceAuthPayload({
-      deviceId: identity.deviceId,
-      clientId: 'webchat',
-      clientMode: 'webchat',
+    const params: any = {
+      minProtocol: 3,
+      maxProtocol: 3,
+      client: {
+        id: 'webchat',
+        displayName: 'Moltbot Command Center',
+        version: '0.1.0',
+        platform: navigator.platform ?? 'web',
+        mode: 'webchat',
+      },
       role,
       scopes,
-      signedAtMs: signedAt,
-      token: this.opts.token ?? null,
-      nonce: this.connectNonce ?? undefined,
-    });
+      caps: [],
+      userAgent: navigator.userAgent,
+      locale: navigator.language,
+    };
 
-    const signature = await signDevicePayload(identity.privateKeyRawBase64Url, payload);
+    // Token auth: skip device identity to avoid pairing requirement
+    if (this.opts.token) {
+      params.auth = { token: this.opts.token };
+    } else {
+      // Fallback: device identity + pairing flow
+      const identity = loadOrCreateDeviceIdentity();
+      const signedAt = Date.now();
+
+      const payload = buildDeviceAuthPayload({
+        deviceId: identity.deviceId,
+        clientId: 'webchat',
+        clientMode: 'webchat',
+        role,
+        scopes,
+        signedAtMs: signedAt,
+        token: null,
+        nonce: this.connectNonce ?? undefined,
+      });
+
+      const signature = await signDevicePayload(identity.privateKeyRawBase64Url, payload);
+
+      params.device = {
+        id: identity.deviceId,
+        publicKey: identity.publicKeyRawBase64Url,
+        signature,
+        signedAt,
+        nonce: this.connectNonce ?? undefined,
+      };
+    }
 
     const connectFrame = {
       type: 'req',
       id: uid(),
       method: 'connect',
-      params: {
-        minProtocol: 3,
-        maxProtocol: 3,
-        client: {
-          id: 'webchat',
-          displayName: 'Moltbot Command Center',
-          version: '0.1.0',
-          platform: navigator.platform ?? 'web',
-          mode: 'webchat',
-        },
-        role,
-        scopes,
-        caps: [],
-        auth: this.opts.token ? { token: this.opts.token } : undefined,
-        userAgent: navigator.userAgent,
-        locale: navigator.language,
-        device: {
-          id: identity.deviceId,
-          publicKey: identity.publicKeyRawBase64Url,
-          signature,
-          signedAt,
-          nonce: this.connectNonce ?? undefined,
-        },
-      },
+      params,
     };
 
     this.ws.send(JSON.stringify(connectFrame));
