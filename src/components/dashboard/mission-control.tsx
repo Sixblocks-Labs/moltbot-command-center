@@ -66,7 +66,7 @@ export function MissionControl({
         </Badge>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0">
+      <ScrollArea className="flex-1 min-h-0 h-full">
         <div className="p-4 space-y-4">
           <section className="rounded-xl border bg-card p-4">
           <div className="flex items-center justify-between">

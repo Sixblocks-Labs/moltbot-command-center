@@ -116,10 +116,10 @@ export function Shell({
       </header>
 
       {/* Layout: 1 col (<md), 2 cols (md), 3 cols (lg+) */}
-      <div className="mx-auto grid w-full max-w-screen-2xl flex-1 grid-cols-1 gap-4 px-4 py-4 md:grid-cols-[280px_1fr] lg:grid-cols-[280px_1fr_360px]">
-        <div className="hidden md:block">{left}</div>
-        <div>{main}</div>
-        <div className="hidden lg:block">{right}</div>
+      <div className="mx-auto grid w-full max-w-screen-2xl flex-1 min-h-0 grid-cols-1 gap-4 px-4 py-4 md:grid-cols-[280px_1fr] lg:grid-cols-[280px_1fr_360px]">
+        <div className="hidden md:block min-h-0">{left}</div>
+        <div className="min-h-0">{main}</div>
+        <div className="hidden lg:block min-h-0">{right}</div>
       </div>
 
       <footer className="border-t border-white/10">
