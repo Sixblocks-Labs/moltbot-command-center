@@ -26,7 +26,7 @@ export function useGatewayChat(opts: {
 
     let ws: WebSocket;
     try {
-      ws = new WebSocket(url);
+      const wsUrl = new URL(url); wsUrl.searchParams.set("token", token); ws = new WebSocket(wsUrl.toString());
     } catch {
       // e.g. Mixed content (https page trying ws://) can throw synchronously.
       setConnected(false);
@@ -37,7 +37,6 @@ export function useGatewayChat(opts: {
 
     ws.onopen = () => {
       setConnected(true);
-      ws.send(JSON.stringify(authPayload));
     };
 
     ws.onclose = () => {
