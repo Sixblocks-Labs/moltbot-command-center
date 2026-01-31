@@ -1,7 +1,8 @@
 'use client';
-
 import { sha256 } from '@noble/hashes/sha2.js';
+import { sha512 } from '@noble/hashes/sha2.js';
 import * as ed from '@noble/ed25519';
+ed.hashes.sha512 = sha512;
 import { base64UrlEncode, bytesToHex, utf8ToBytes } from './base64url';
 
 export type BrowserDeviceIdentity = {

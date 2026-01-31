@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import type { SessionRow } from '@/components/app/sidebar-tasks';
 import {
   Bolt,
@@ -52,8 +53,8 @@ export function MissionControl({
   };
 
   return (
-    <Card className="min-h-[60vh] md:h-[calc(100dvh-140px)] overflow-visible md:overflow-hidden">
-      <div className="flex items-center justify-between border-b px-4 py-3">
+    <Card className="min-h-[60vh] md:h-[calc(100dvh-140px)] overflow-visible md:overflow-hidden flex flex-col">
+      <div className="flex items-center justify-between border-b px-4 py-3 shrink-0">
         <div>
           <div className="text-sm font-semibold">Dashboard</div>
           <div className="text-xs text-muted-foreground">
@@ -65,8 +66,9 @@ export function MissionControl({
         </Badge>
       </div>
 
-      <div className="p-4 space-y-4">
-        <section className="rounded-xl border bg-card p-4">
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-4">
+          <section className="rounded-xl border bg-card p-4">
           <div className="flex items-center justify-between">
             <div className="text-sm font-semibold">Morning Brief</div>
             <Badge variant="outline">Today</Badge>
@@ -161,29 +163,30 @@ export function MissionControl({
           </div>
         </section>
 
-        <section className="rounded-xl border bg-card p-4">
-          <div className="text-sm font-semibold">Task Tracker</div>
-          <Separator className="my-3" />
-          <div className="space-y-2">
-            {sessions.map((s) => (
-              <div key={s.id} className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">{s.name}</span>
-                <Badge
-                  variant={
-                    s.status === 'active'
-                      ? 'default'
-                      : s.status === 'done'
-                        ? 'secondary'
-                        : 'outline'
-                  }
-                >
-                  {s.status}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
+          <section className="rounded-xl border bg-card p-4">
+            <div className="text-sm font-semibold">Task Tracker</div>
+            <Separator className="my-3" />
+            <div className="space-y-2">
+              {sessions.map((s) => (
+                <div key={s.id} className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{s.name}</span>
+                  <Badge
+                    variant={
+                      s.status === 'active'
+                        ? 'default'
+                        : s.status === 'done'
+                          ? 'secondary'
+                          : 'outline'
+                    }
+                  >
+                    {s.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      </ScrollArea>
     </Card>
   );
 }

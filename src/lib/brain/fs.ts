@@ -13,6 +13,35 @@ export async function ensureBrainFolders() {
   await ensureBrainSeed();
 }
 
+export type BrainDocMeta = {
+  id: string;
+  path: string;
+  title: string;
+  folder: BrainFolderKey;
+  updatedAt: number;
+  tag?: string;
+};
+
+function safeJoin(root: string, p: string) {
+  const rootResolved = path.resolve(root);
+  const resolved = path.resolve(rootResolved, p);
+
+  // Prevent path traversal ("..") and prefix tricks (e.g. /root2 matching /root)
+  if (resolved !== rootResolved && !resolved.startsWith(rootResolved + path.sep)) {
+    throw new Error('Invalid path');
+  }
+
+  return resolved;
+}
+
+function assertMarkdownDocPath(docPath: string) {
+  // We only support markdown docs in the brain.
+  // (This also reduces the blast radius of the write endpoint.)
+  if (!docPath.toLowerCase().endsWith('.md')) {
+    throw new Error('Only .md files are allowed');
+  }
+}
+
 async function ensureBrainSeed() {
   try {
     // If any markdown exists in known folders, do nothing.
@@ -43,27 +72,6 @@ async function ensureBrainSeed() {
   } catch {
     // best-effort
   }
-}
-
-export type BrainDocMeta = {
-  id: string;
-  path: string;
-  title: string;
-  folder: BrainFolderKey;
-  updatedAt: number;
-  tag?: string;
-};
-
-function safeJoin(root: string, p: string) {
-  const rootResolved = path.resolve(root);
-  const resolved = path.resolve(rootResolved, p);
-
-  // Prevent path traversal ("..") and prefix tricks (e.g. /root2 matching /root)
-  if (resolved !== rootResolved && !resolved.startsWith(rootResolved + path.sep)) {
-    throw new Error('Invalid path');
-  }
-
-  return resolved;
 }
 
 export async function listDocs(): Promise<BrainDocMeta[]> {
@@ -97,14 +105,6 @@ export async function listDocs(): Promise<BrainDocMeta[]> {
   // newest first
   entries.sort((a, b) => b.updatedAt - a.updatedAt);
   return entries;
-}
-
-function assertMarkdownDocPath(docPath: string) {
-  // We only support markdown docs in the brain.
-  // (This also reduces the blast radius of the write endpoint.)
-  if (!docPath.toLowerCase().endsWith('.md')) {
-    throw new Error('Only .md files are allowed');
-  }
 }
 
 export async function readDoc(docPath: string): Promise<string> {
