@@ -7,6 +7,42 @@ export async function ensureBrainFolders() {
   await Promise.all(
     Object.values(BRAIN_FOLDERS).map((p) => fs.mkdir(p, { recursive: true }))
   );
+
+  // Seed starter docs (useful for serverless deploys where the FS starts empty)
+  // Only runs when the brain is effectively empty.
+  await ensureBrainSeed();
+}
+
+async function ensureBrainSeed() {
+  try {
+    // If any markdown exists in known folders, do nothing.
+    for (const dir of Object.values(BRAIN_FOLDERS)) {
+      const items = await fs.readdir(dir).catch(() => [] as any[]);
+      const hasMd = items.some((n: any) => String(n ?? '').toLowerCase().endsWith('.md'));
+      if (hasMd) return;
+    }
+
+    const seedDir = path.join(process.cwd(), 'brain-seed');
+    const seedExists = await fs
+      .stat(seedDir)
+      .then((s) => s.isDirectory())
+      .catch(() => false);
+    if (!seedExists) return;
+
+    // Copy seed folder structure into brain root.
+    // node:fs/promises supports cp in Node 16+.
+    // @ts-ignore
+    if (typeof (fs as any).cp === 'function') {
+      // @ts-ignore
+      await (fs as any).cp(seedDir, BRAIN_ROOT, {
+        recursive: true,
+        force: false,
+        errorOnExist: false,
+      });
+    }
+  } catch {
+    // best-effort
+  }
 }
 
 export type BrainDocMeta = {
