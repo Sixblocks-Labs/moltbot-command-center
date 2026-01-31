@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useEffect, useState } from 'react';
 import type { SessionRow } from '@/components/app/sidebar-tasks';
 import {
   Bolt,
@@ -40,6 +41,25 @@ export function MissionControl({
   onTogglePin: (id: string) => void;
 }) {
   const activeCount = sessions.filter((s) => s.status === 'active').length;
+
+  const [moltbook, setMoltbook] = useState<{ day: string; path: string; bullets: string[] } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/moltbook/daily')
+      .then((r) => r.json())
+      .then((j) => {
+        if (cancelled) return;
+        setMoltbook({ day: j.day, path: j.path, bullets: Array.isArray(j.bullets) ? j.bullets : [] });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setMoltbook(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const iconFor = (name?: string) => {
     const cls = 'h-4 w-4';
@@ -92,6 +112,29 @@ export function MissionControl({
               <span className="font-medium">Pick a job → ship a chunk</span>
             </li>
           </ul>
+
+          <Separator className="my-3" />
+
+          <div>
+            <div className="text-xs font-semibold">Daily Moltbook Learnings</div>
+            <div className="mt-2 space-y-2 text-sm">
+              {(moltbook?.bullets?.length ? moltbook.bullets : []).slice(0, 5).map((b, i) => (
+                <div key={i} className="text-muted-foreground">
+                  • {b}
+                </div>
+              ))}
+              {!moltbook?.bullets?.length ? (
+                <div className="text-muted-foreground">
+                  No learnings yet. (Runs tomorrow at 7:00 AM ET.)
+                </div>
+              ) : null}
+            </div>
+            <div className="mt-2 text-[11px] text-muted-foreground">
+              {moltbook?.path
+                ? `Full write-up: ~/clawdbot-brain/journal/moltbook/${moltbook.day}-moltbook-learnings.md`
+                : 'Full write-up: ~/clawdbot-brain/journal/moltbook/YYYY-MM-DD-moltbook-learnings.md'}
+            </div>
+          </div>
         </section>
 
         <section className="rounded-xl border bg-card p-4">
