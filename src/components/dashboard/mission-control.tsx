@@ -53,7 +53,7 @@ export function MissionControl({
   };
 
   return (
-    <Card className="min-h-[60vh] md:h-[calc(100dvh-140px)] overflow-visible md:overflow-hidden flex flex-col">
+    <Card className="min-h-[60vh] md:h-[calc(100dvh-140px)] overflow-visible md:overflow-hidden flex flex-col min-h-0">
       <div className="flex items-center justify-between border-b px-4 py-3 shrink-0">
         <div>
           <div className="text-sm font-semibold">Dashboard</div>
@@ -66,7 +66,7 @@ export function MissionControl({
         </Badge>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="p-4 space-y-4">
           <section className="rounded-xl border bg-card p-4">
           <div className="flex items-center justify-between">
