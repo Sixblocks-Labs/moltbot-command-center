@@ -19,9 +19,15 @@ export function useJobs() {
     const pinned = jobs.filter((j) => j.pinned);
     const rest = jobs.filter((j) => !j.pinned);
 
-    const byUpdated = (a: JobTemplate, b: JobTemplate) => b.updatedAt - a.updatedAt;
-    pinned.sort(byUpdated);
-    rest.sort(byUpdated);
+    const byStable = (a: JobTemplate, b: JobTemplate) => {
+      const ai = typeof a.sortIndex === 'number' ? a.sortIndex : Number.POSITIVE_INFINITY;
+      const bi = typeof b.sortIndex === 'number' ? b.sortIndex : Number.POSITIVE_INFINITY;
+      if (ai !== bi) return ai - bi;
+      return b.updatedAt - a.updatedAt;
+    };
+
+    pinned.sort(byStable);
+    rest.sort(byStable);
 
     return [...pinned, ...rest];
   }, [jobs]);
