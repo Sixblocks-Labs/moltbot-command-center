@@ -70,9 +70,12 @@ export function BrainPanel() {
     refresh();
   }, []);
 
+  const [dirty, setDirty] = useState(false);
+
   async function loadDoc(d: DocMeta) {
     setSelected(d);
     setMode('view');
+    setDirty(false);
     const res = await fetch(`/api/brain/doc?path=${encodeURIComponent(d.path)}`);
     const json = await res.json();
     setContent(json.content);
@@ -128,6 +131,25 @@ export function BrainPanel() {
       body: JSON.stringify({ path: selected.path, content }),
     });
     setMode('view');
+    setDirty(false);
+    await refresh();
+  }
+
+  async function deleteSelected() {
+    if (!selected) return;
+    if (dirty) return;
+
+    const ok = window.confirm(`Delete "${selected.title}"? This cannot be undone.`);
+    if (!ok) return;
+
+    await fetch(`/api/brain/doc?path=${encodeURIComponent(selected.path)}`, {
+      method: 'DELETE',
+    });
+
+    setSelected(null);
+    setContent('');
+    setMode('view');
+    setDirty(false);
     await refresh();
   }
 
@@ -264,6 +286,15 @@ export function BrainPanel() {
                   >
                     {mode === 'view' ? 'Edit' : 'Preview'}
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={deleteSelected}
+                    disabled={!selected || dirty}
+                    title={dirty ? 'Save or discard changes before deleting' : 'Delete this document'}
+                  >
+                    Delete
+                  </Button>
                   <Button size="sm" onClick={save}>
                     Save
                   </Button>
@@ -274,7 +305,10 @@ export function BrainPanel() {
                 {mode === 'edit' ? (
                   <Textarea
                     value={content}
-                    onChange={(e) => setContent(e.target.value)}
+                    onChange={(e) => {
+                      setContent(e.target.value);
+                      setDirty(true);
+                    }}
                     className="min-h-[65dvh] font-mono text-xs"
                   />
                 ) : (

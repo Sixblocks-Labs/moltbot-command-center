@@ -102,6 +102,15 @@ export async function writeDoc(docPath: string, content: string) {
   }
 }
 
+export async function deleteDoc(docPath: string) {
+  const supabase = getSupabaseClient();
+
+  const { error } = await supabase.from('brain_docs').delete().eq('path', docPath);
+  if (error) {
+    throw new Error(`Failed to delete document: ${error.message}`);
+  }
+}
+
 export async function searchDocs(query: string): Promise<BrainDocMeta[]> {
   const supabase = getSupabaseClient();
   const q = query.toLowerCase();

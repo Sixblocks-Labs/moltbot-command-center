@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readDoc, writeDoc } from '@/lib/brain/fs';
+import { readDoc, writeDoc, deleteDoc } from '@/lib/brain/fs';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,5 +49,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
     }
     return NextResponse.json({ error: 'Failed to write doc' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const docPath = searchParams.get('path');
+  if (!docPath) {
+    return NextResponse.json({ error: 'Missing path' }, { status: 400 });
+  }
+
+  try {
+    await deleteDoc(docPath);
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: 'Failed to delete doc' }, { status: 500 });
   }
 }
