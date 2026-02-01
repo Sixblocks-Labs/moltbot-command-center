@@ -55,15 +55,36 @@ export async function readDoc(docPath: string): Promise<string> {
   return String((data as any).content ?? '');
 }
 
+function deriveTitleFromContent(content: string): string | null {
+  const lines = String(content ?? '').split(/\r?\n/);
+  for (const line of lines) {
+    const l = line.trim();
+    // First H1 becomes the doc title.
+    const m = l.match(/^#\s+(.+)$/);
+    if (m?.[1]) return m[1].trim();
+    // Skip empty lines and continue scanning until we hit real content.
+    if (l.length) break;
+  }
+  return null;
+}
+
+function deriveTitleFromPath(docPath: string): string {
+  const filename = docPath.split('/').pop()!.replace(/\.md$/, '');
+
+  // Special-case date journals so the list is human-friendly.
+  // journal/2026-02-01.md → "Journal — 2026-02-01"
+  const isJournal = docPath.startsWith('journal/');
+  const isDate = /^\d{4}-\d{2}-\d{2}$/.test(filename);
+  if (isJournal && isDate) return `Journal — ${filename}`;
+
+  return filename.replace(/[-_]/g, ' ');
+}
+
 export async function writeDoc(docPath: string, content: string) {
   const supabase = getSupabaseClient();
 
   const folder = (docPath.split('/')[0] || 'notes') as BrainFolderKey;
-  const title = docPath
-    .split('/')
-    .pop()!
-    .replace(/\.md$/, '')
-    .replace(/[-_]/g, ' ');
+  const title = deriveTitleFromContent(content) ?? deriveTitleFromPath(docPath);
 
   const { error } = await supabase.from('brain_docs').upsert(
     {
