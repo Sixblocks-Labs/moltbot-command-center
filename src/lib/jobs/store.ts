@@ -28,8 +28,8 @@ export function defaultJobs(): JobTemplate[] {
     {
       id: 'discipleship',
       title: 'Follow Jesus first (2026)',
-      progress: 'keep Jesus as my highest love; put His words into practice',
-      when: 'When I feel my projects (or anything) becoming too big in my heart',
+      progress: 'Rightly ordered loves; obey Jesus today.',
+      when: 'My projects (or anything) start feeling too big in my heart.',
       prompt:
         "Job: Follow Jesus first (2026)\n\nContext: I believe in Jesus Christ. I want my heart to belong to Him first. I’m prone to loving things in this world more than Him.\n\nAsk: Help me put things back in order using Scripture (Old + New Testament), with emphasis on who Jesus says He is. If I tell you I’m over-loving a project, respond with gentle, specific perspective + 1-3 practical next steps to obey today (James 1:22).\n\nLens phrase: The Bible as Architecture (help me think in systems while staying faithful).\n\nGuardrails: This isn’t about scrapping projects; it’s about rightly ordered loves.\n\nOutput: (1) Scripture-based perspective, (2) a short prayer/commitment draft (optional), (3) one concrete action for today.",
       icon: 'HeartHandshake',
@@ -42,8 +42,8 @@ export function defaultJobs(): JobTemplate[] {
     {
       id: 'ship-it',
       title: 'Ship it',
-      progress: 'build + deploy something today (fast, correct, shipped)',
-      when: 'When I need you to build and deploy something for me today',
+      progress: 'Build + deploy something today (fast, correct, shipped).',
+      when: 'I need something built and deployed today.',
       prompt:
         "Job: Ship it\n\nI need you to build and deploy something for me today. Here’s what I want: [DESCRIBE].\n\nRequirements:\n- Scaffold it in ~/projects/\n- Use Next.js 14 + Tailwind\n- Use Supabase if needed\n- Push it to Sixblocks-Labs on GitHub\n- Deploy to Vercel\n\nIf anything’s unclear, ask me before you start building — don’t guess.\n\nWhen you’re done:\n- Send me the live URL\n- Send me the repo link",
       icon: 'Bolt',
@@ -56,8 +56,8 @@ export function defaultJobs(): JobTemplate[] {
     {
       id: 'prospect-research',
       title: 'Prospect research',
-      progress: 'generate a tight target list + angles + draft first-touch emails',
-      when: 'When I’ve got time for outreach but no list and no angle',
+      progress: 'Find targets + angles + draft first-touch emails.',
+      when: 'I have time for outreach but no list and no angle.',
       prompt:
         "Job: Prospect research\n\nUse Apollo to find 10-20 companies that match my ICP:\n- B2B SaaS\n- Series A-C\n- 50-500 employees\n\nFor each company:\n- Find the VP of Engineering or CTO\n- Research their recent news, product launches, and hiring signals\n- Score each 1-10 on fit\n\nThen:\n- Draft personalized first-touch emails for the top 10\n\nOutput:\n- Save everything to ~/bizdev/prospects/\n- Send me a summary here with the top 5 and why they scored highest",
       icon: 'Target',
@@ -70,8 +70,8 @@ export function defaultJobs(): JobTemplate[] {
     {
       id: 'sensemake',
       title: 'Sensemake',
-      progress: 'extract relevant insights + translate into concrete changes',
-      when: 'When I just read or watched something that might change how I’m thinking',
+      progress: 'Extract the few insights that matter + translate into action.',
+      when: 'I just read/watched something that might change my thinking.',
       prompt:
         "Job: Sensemake\n\nHere it is: [URL OR TEXT].\n\nPull out the 3-5 insights that are actually relevant to what I’m building at Sixblocks-Labs.\nFor each one:\n- what it means\n- whether it conflicts with anything I’m currently doing\n- one concrete thing I should consider doing differently\n\nSave your analysis to ~/clawdbot-brain/research/ with today’s date.\nKeep it tight — no filler.",
       icon: 'Telescope',
@@ -84,8 +84,8 @@ export function defaultJobs(): JobTemplate[] {
     {
       id: 'debug-this',
       title: 'Debug this',
-      progress: 'trace to root cause and fix with minimal thrash',
-      when: "When something’s broken and I can show you the error + what I was doing",
+      progress: 'Find root cause and fix (no thrash).',
+      when: "Something’s broken and I can show you the error + context.",
       prompt:
         "Job: Debug this\n\nSomething’s broken. Here’s the error and what I was doing: [ERROR + CONTEXT].\n\nInstructions:\n- Trace it to the root cause\n- Don’t give me 5 guesses — give me the most likely cause and the exact commands to fix it\n- If you need more info, ask me one specific question before guessing\n- If your first fix doesn’t work, research the issue before suggesting the next one",
       icon: 'Bug',
@@ -98,8 +98,8 @@ export function defaultJobs(): JobTemplate[] {
     {
       id: 'morning-brief',
       title: 'Morning brief',
-      progress: 'scan the stack + surface the 3 highest-leverage priorities',
-      when: "When it’s the start of my day",
+      progress: 'Scan the stack; recommend today’s top 3 priorities.',
+      when: 'Start of day.',
       prompt:
         "Job: Morning brief\n\nScan my stack and give me a brief:\n- any new GitHub issues or PRs in Sixblocks-Labs\n- Vercel deployment status and any overnight failures\n- ConvertKit new subscribers or unsubscribes since yesterday\n- Airtable pipeline changes\n- the status of any sessions or tasks you were working on overnight\n\nEnd with your top 3 recommended priorities for today.\nKeep the whole thing under 300 words.",
       icon: 'Sun',
@@ -112,8 +112,8 @@ export function defaultJobs(): JobTemplate[] {
     {
       id: 'overnight-build',
       title: 'Overnight build',
-      progress: 'ship a spec by morning in chunked execution',
-      when: "When I’m signing off for the night and want something built by morning",
+      progress: 'Build overnight in chunks; ship what’s ready by morning.',
+      when: 'I’m signing off and want progress by morning.',
       prompt:
         "Job: Overnight build\n\nHere’s what I want built by morning: [DESCRIBE SPEC].\n\nInstructions:\n- Break it into chunks to avoid timeouts\n- Use my standard stack\n- Push to Sixblocks-Labs on GitHub and deploy to Vercel\n- If you hit a blocker, document it in ~/clawdbot-brain/tasks/ and move on to the next chunk — don’t stop entirely\n\nAt 7am, send me a summary with:\n- what’s working\n- what’s not\n- the live URL\n- what still needs my input",
       icon: 'Moon',
@@ -126,8 +126,8 @@ export function defaultJobs(): JobTemplate[] {
     {
       id: 'wire-it-up',
       title: 'Wire it up',
-      progress: 'connect a new service to the stack with verification',
-      when: 'When I just signed up for a new service and need it connected',
+      progress: 'Connect a new service to the stack (step-by-step + verified).',
+      when: 'I just signed up for a new service and need it connected.',
       prompt:
         "Job: Wire it up\n\nThe service is: [NAME].\n\nWalk me through it step by step:\n- where to find the API key\n- the exact export command for ~/.bashrc\n- which skill to install via clawdhub\n- a test command to confirm it’s working\n\nRules:\n- One step at a time\n- Wait for me to say “done” before moving to the next\n- If there’s no existing skill, tell me — don’t install something unvetted.",
       icon: 'Plug',
@@ -140,8 +140,8 @@ export function defaultJobs(): JobTemplate[] {
     {
       id: 'secure-audit',
       title: 'Secure + audit',
-      progress: 'run a full security check and produce exact remediation commands',
-      when: 'When we need to verify the Moltbot setup is still locked down',
+      progress: 'Audit security posture; output exact remediation commands.',
+      when: 'We need to confirm the Moltbot setup is still locked down.',
       prompt:
         "Job: Secure + audit\n\nRun a full security check on my Moltbot setup.\n\nDo:\n- Run: clawdbot security audit –deep\n- Check that the gateway is only accessible via Tailscale\n- Confirm credential files are still 600 permissions\n- Confirm no unapproved skills were added\n- Confirm firewall rules on port 18789 are intact\n\nIf anything needs rotation or fixing, give me the exact commands.\nSave the results to: ~/clawdbot-brain/notes/security-audit-[today’s date].md",
       icon: 'ShieldCheck',
@@ -154,8 +154,8 @@ export function defaultJobs(): JobTemplate[] {
     {
       id: 'write-publish',
       title: 'Write + publish',
-      progress: 'research recent discourse + draft in Ryan’s voice',
-      when: 'When I have a rough idea for a post but no draft',
+      progress: 'Research recent takes; draft in Ryan’s voice (short + long).',
+      when: 'I have a rough idea for a post but no draft.',
       prompt:
         "Job: Write + publish\n\nI have a rough idea for a post but no draft. Here’s the topic and my take: [DESCRIBE].\n\nInstructions:\n- Research what’s already been said about this in the last 7 days\n- Draft a LinkedIn post in my voice — concise, opinionated, practical\n- No hashtag spam, no fluff\n\nDeliver:\n- two versions: (1) short under 200 words, (2) long-form 500-800 words\n- Save both to ~/clawdbot-brain/ideas/\n- Send me the short version here so I can review on mobile",
       icon: 'PenLine',
@@ -168,8 +168,8 @@ export function defaultJobs(): JobTemplate[] {
     {
       id: 'plan-next-chunk',
       title: 'Plan the next chunk',
-      progress: 'prioritize today vs this week vs drop/delegate (opinionated)',
-      when: 'When my brain has too many tabs open',
+      progress: 'Decide what to do today vs this week vs drop/delegate.',
+      when: 'My brain has too many tabs open.',
       prompt:
         "Job: Plan the next chunk\n\nHere’s everything on my plate right now: [DESCRIBE].\n\nDo:\n- Look at what I’ve been working on in our recent sessions\n- Check ~/clawdbot-brain/tasks/ for open items\n- Review any active GitHub issues in Sixblocks-Labs\n\nThen give me a prioritized plan:\n- what to do today (max 3 things)\n- what to defer to this week\n- what to drop or delegate\n\nBe opinionated — I want your recommendation, not a menu.",
       icon: 'ListTodo',
