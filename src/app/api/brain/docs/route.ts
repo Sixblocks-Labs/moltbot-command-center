@@ -5,5 +5,13 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const docs = await listDocs();
-  return NextResponse.json({ docs });
+  return NextResponse.json(
+    { docs },
+    {
+      headers: {
+        // Avoid any edge/browser caching; the Brain tab expects live updates.
+        'Cache-Control': 'no-store, max-age=0',
+      },
+    }
+  );
 }

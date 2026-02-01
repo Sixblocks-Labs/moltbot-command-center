@@ -49,7 +49,7 @@ export function BrainPanel() {
 
   async function refresh() {
     await fetch('/api/brain/ensure', { method: 'POST' });
-    const res = await fetch('/api/brain/docs');
+    const res = await fetch('/api/brain/docs', { cache: 'no-store' });
     const json = await res.json();
     setDocs(json.docs);
   }
