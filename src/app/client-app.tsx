@@ -25,7 +25,7 @@ export default function ClientApp({
 }) {
   const [tab, setTab] = useState<AppTab>('dashboard');
 
-  const { connected, messages, toolEvents, sendUserMessage } = useGatewayChat({
+  const { connected, messages, toolEvents, sendUserMessage, request } = useGatewayChat({
     url: gatewayUrl,
     token,
   });
@@ -37,14 +37,77 @@ export default function ClientApp({
     return estimateTokens(combined);
   }, [messages]);
 
-  const sessions = useMemo(() => {
-    return [
-      {
-        id: 'main',
-        name: 'Main session',
-        status: connected ? ('active' as const) : ('idle' as const),
-      },
-    ];
+  const [sessions, setSessions] = useState<{ id: string; name: string; status: 'active' | 'idle' | 'done' }[]>([
+    {
+      id: 'main',
+      name: 'Main session',
+      status: connected ? 'active' : 'idle',
+    },
+  ]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refresh() {
+      if (!connected) {
+        setSessions([
+          {
+            id: 'main',
+            name: 'Main session',
+            status: 'idle',
+          },
+        ]);
+        return;
+      }
+
+      try {
+        const res = await request('sessions.list', {
+          limit: 12,
+          includeGlobal: false,
+          includeUnknown: false,
+          includeDerivedTitles: true,
+        });
+
+        const rawSessions = (res?.sessions ?? []) as Array<any>;
+        const now = Date.now();
+
+        const mapped = rawSessions
+          .map((s) => {
+            const key = String(s?.key ?? '');
+            const displayName = String(
+              s?.derivedTitle || s?.displayName || s?.label || s?.subject || s?.sessionId || key
+            );
+            const updatedAt = typeof s?.updatedAt === 'number' ? s.updatedAt : 0;
+
+            const status: 'active' | 'idle' | 'done' =
+              updatedAt && now - updatedAt < 2 * 60_000 ? 'active' : 'idle';
+
+            return {
+              id: key || String(s?.sessionId ?? displayName),
+              name: displayName,
+              status,
+            };
+          })
+          .filter((s) => Boolean(s.id) && Boolean(s.name))
+          // Ensure main is visible at top
+          .sort((a, b) => (a.id === 'main' ? -1 : b.id === 'main' ? 1 : 0));
+
+        if (!cancelled) {
+          setSessions(mapped.length ? mapped : sessions);
+        }
+      } catch {
+        // keep existing sessions
+      }
+    }
+
+    refresh();
+    const t = window.setInterval(refresh, 5000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected]);
 
   const footerLeft = useMemo(() => {

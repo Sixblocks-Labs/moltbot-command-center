@@ -107,5 +107,11 @@ export function useGatewayChat(opts: { url: string; token: string; sessionKey?: 
     });
   }
 
-  return { connected, messages, toolEvents, sendUserMessage };
+  async function request(method: string, params: any) {
+    const client = clientRef.current;
+    if (!client || !connected) throw new Error('gateway not connected');
+    return client.requestAsync(method, params);
+  }
+
+  return { connected, messages, toolEvents, sendUserMessage, request };
 }

@@ -38,6 +38,15 @@ export class BrowserGatewayClient {
   private connectNonce: string | null = null;
   private connectSent = false;
 
+  private pending = new Map<
+    string,
+    {
+      resolve: (payload: any) => void;
+      reject: (err: Error) => void;
+      timeout: number;
+    }
+  >();
+
   constructor(
     private opts: {
       url: string;
@@ -91,6 +100,16 @@ export class BrowserGatewayClient {
 
       if (f.type === 'res') {
         const r = f as GatewayResponseFrame;
+
+        const pending = this.pending.get(r.id);
+        if (pending) {
+          this.pending.delete(r.id);
+          window.clearTimeout(pending.timeout);
+          if (r.ok) pending.resolve(r.payload);
+          else pending.reject(new Error(r.error?.message || 'Gateway request failed'));
+          return;
+        }
+
         if (r.ok && r.payload?.type === 'hello-ok') {
           this.opts.onHelloOk(r.payload as GatewayHelloOk);
           return;
@@ -108,6 +127,13 @@ export class BrowserGatewayClient {
   }
 
   stop() {
+    // Reject any pending requests
+    for (const [id, p] of this.pending.entries()) {
+      window.clearTimeout(p.timeout);
+      p.reject(new Error('Gateway disconnected'));
+      this.pending.delete(id);
+    }
+
     this.ws?.close();
     this.ws = null;
   }
@@ -191,5 +217,38 @@ export class BrowserGatewayClient {
     };
 
     this.ws.send(JSON.stringify(frame));
+  }
+
+  requestAsync(method: string, params: any, opts?: { timeoutMs?: number }): Promise<any> {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      return Promise.reject(new Error('gateway not connected'));
+    }
+
+    const id = uid();
+    const timeoutMs = Math.max(250, Math.min(60_000, opts?.timeoutMs ?? 10_000));
+
+    const frame = {
+      type: 'req',
+      id,
+      method,
+      params,
+    };
+
+    return new Promise((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`Gateway request timed out: ${method}`));
+      }, timeoutMs);
+
+      this.pending.set(id, { resolve, reject, timeout });
+
+      try {
+        this.ws?.send(JSON.stringify(frame));
+      } catch (e: any) {
+        window.clearTimeout(timeout);
+        this.pending.delete(id);
+        reject(new Error(e?.message || 'Failed to send gateway request'));
+      }
+    });
   }
 }
