@@ -15,12 +15,20 @@ function extractTextFromChatEventMessage(msg: any): string {
     .join('');
 }
 
+export type RunTask = {
+  runId: string;
+  title: string;
+  status: 'active' | 'done' | 'error';
+  updatedAt: number;
+};
+
 export function useGatewayChat(opts: { url: string; token: string; sessionKey?: string }) {
   const { url, token, sessionKey = 'main' } = opts;
 
   const [connected, setConnected] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [toolEvents, setToolEvents] = useState<ToolEvent[]>([]);
+  const [tasks, setTasks] = useState<RunTask[]>([]);
 
   const clientRef = useRef<BrowserGatewayClient | null>(null);
 
@@ -35,6 +43,31 @@ export function useGatewayChat(opts: { url: string; token: string; sessionKey?: 
       onError: () => setConnected(false),
       onChatEvent: (evt: ChatEvent) => {
         if (!evt) return;
+
+        // Update run tasks state
+        setTasks((prev) => {
+          const status: RunTask['status'] =
+            evt.state === 'delta' ? 'active' : evt.state === 'final' ? 'done' : 'error';
+
+          const idx = prev.findIndex((t) => t.runId === evt.runId);
+          if (idx === -1) {
+            return [
+              {
+                runId: evt.runId,
+                title: `Run ${evt.runId.slice(0, 8)}`,
+                status,
+                updatedAt: Date.now(),
+              },
+              ...prev,
+            ].slice(0, 10);
+          }
+
+          const next = [...prev];
+          next[idx] = { ...next[idx], status, updatedAt: Date.now() };
+          // move to top
+          const [item] = next.splice(idx, 1);
+          return [item, ...next].slice(0, 10);
+        });
 
         if (evt.state === 'error') {
           setMessages((prev) => [
@@ -100,11 +133,46 @@ export function useGatewayChat(opts: { url: string; token: string; sessionKey?: 
     const client = clientRef.current;
     if (!client || !connected) return;
 
-    client.request('chat.send', {
-      sessionKey,
-      message: content,
-      idempotencyKey: uid(),
-    });
+    const idempotencyKey = uid();
+
+    // Create a placeholder task immediately
+    setTasks((prev) =>
+      [
+        {
+          runId: idempotencyKey,
+          title: content.split('\n')[0]?.slice(0, 80) || `Run ${idempotencyKey.slice(0, 8)}`,
+          status: 'active' as const,
+          updatedAt: Date.now(),
+        },
+        ...prev.filter((t) => t.runId !== idempotencyKey),
+      ].slice(0, 10)
+    );
+
+    // Ask gateway to start a run; response includes canonical runId
+    client
+      .requestAsync('chat.send', {
+        sessionKey,
+        message: content,
+        idempotencyKey,
+      })
+      .then((res) => {
+        const runId = String(res?.runId ?? idempotencyKey);
+        setTasks((prev) => {
+          const existing = prev.find((t) => t.runId === idempotencyKey);
+          const title = existing?.title ?? content.split('\n')[0]?.slice(0, 80) ?? `Run ${runId.slice(0, 8)}`;
+          const next = prev.filter((t) => t.runId !== idempotencyKey);
+          return [{ runId, title, status: 'active' as const, updatedAt: Date.now() }, ...next].slice(0, 10);
+        });
+      })
+      .catch(() => {
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.runId === idempotencyKey
+              ? { ...t, status: 'error' as const, updatedAt: Date.now() }
+              : t
+          )
+        );
+      });
   }
 
   async function request(method: string, params: any) {
@@ -113,5 +181,5 @@ export function useGatewayChat(opts: { url: string; token: string; sessionKey?: 
     return client.requestAsync(method, params);
   }
 
-  return { connected, messages, toolEvents, sendUserMessage, request };
+  return { connected, messages, toolEvents, tasks, sendUserMessage, request };
 }

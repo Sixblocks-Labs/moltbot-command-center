@@ -11,11 +11,19 @@ export type SessionRow = {
   status: 'active' | 'idle' | 'done';
 };
 
+export type RunTask = {
+  id: string; // runId
+  title: string;
+  status: 'active' | 'idle' | 'done';
+};
+
 export function SidebarTasks({
   sessions,
+  tasks,
   tokenEstimate,
 }: {
   sessions: SessionRow[];
+  tasks: RunTask[];
   tokenEstimate: number;
 }) {
   return (
@@ -32,6 +40,53 @@ export function SidebarTasks({
         <Separator className="my-3" />
 
         <div className="space-y-2">
+          {tasks.length > 0 ? (
+            <div className="space-y-2">
+              <div className="text-[11px] font-semibold text-muted-foreground">
+                Active runs
+              </div>
+              {tasks.map((t) => (
+                <div
+                  key={t.id}
+                  className={
+                    'group flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2 transition-all duration-200 hover:bg-white/7 hover:shadow-lg hover:shadow-teal-500/10 ' +
+                    (t.status === 'active'
+                      ? 'border-l-4 border-l-teal-400/70'
+                      : t.status === 'done'
+                        ? 'border-l-4 border-l-white/10'
+                        : 'border-l-4 border-l-violet-400/30')
+                  }
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium">{t.title}</div>
+                    <div className="truncate text-[11px] text-slate-400">{t.id}</div>
+                  </div>
+                  <Badge
+                    variant={
+                      t.status === 'active'
+                        ? 'default'
+                        : t.status === 'done'
+                          ? 'secondary'
+                          : 'outline'
+                    }
+                  >
+                    {t.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-xs text-muted-foreground">
+              No active runs yet. Start one from Jobs or Chat.
+            </div>
+          )}
+
+          <Separator className="my-3" />
+
+          <div className="text-[11px] font-semibold text-muted-foreground">
+            Sessions
+          </div>
+
           {sessions.map((s) => (
             <div
               key={s.id}

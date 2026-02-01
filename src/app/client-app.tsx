@@ -25,7 +25,7 @@ export default function ClientApp({
 }) {
   const [tab, setTab] = useState<AppTab>('dashboard');
 
-  const { connected, messages, toolEvents, sendUserMessage, request } = useGatewayChat({
+  const { connected, messages, toolEvents, tasks, sendUserMessage, request } = useGatewayChat({
     url: gatewayUrl,
     token,
   });
@@ -162,7 +162,7 @@ export default function ClientApp({
       tab={tab}
       connected={connected}
       onTabChange={setTab}
-      left={<SidebarTasks sessions={sessions} tokenEstimate={tokenEstimate} />}
+      left={<SidebarTasks sessions={sessions} tasks={tasks.map((t) => ({ id: t.runId, title: t.title, status: t.status === 'error' ? 'idle' : t.status }))} tokenEstimate={tokenEstimate} />}
       main={main}
       right={<RightToolOutput events={toolEvents} />}
       footerLeft={footerLeft}
