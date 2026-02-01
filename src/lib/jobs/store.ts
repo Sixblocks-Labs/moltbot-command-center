@@ -17,7 +17,8 @@ export type JobTemplate = {
 };
 
 // Bump version when default job set changes meaningfully.
-const STORAGE_KEY = 'mcc.jobTemplates.v2';
+// (Forcing a refresh so updated baseline copy ships to all devices.)
+const STORAGE_KEY = 'mcc.jobTemplates.v3';
 
 export function defaultJobs(): JobTemplate[] {
   // Use a fixed baseline timestamp to keep ordering stable across reloads.
