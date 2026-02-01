@@ -162,7 +162,18 @@ export default function ClientApp({
       tab={tab}
       connected={connected}
       onTabChange={setTab}
-      left={<SidebarTasks sessions={sessions} tasks={tasks.map((t) => ({ id: t.runId, title: t.title, status: t.status === 'error' ? 'idle' : t.status }))} tokenEstimate={tokenEstimate} />}
+      left={
+        <SidebarTasks
+          sessions={sessions}
+          tasks={tasks.map((t) => ({
+            id: t.runId,
+            title: t.title,
+            subtitle: t.subtitle,
+            status: t.status === 'error' ? 'idle' : t.status,
+          }))}
+          tokenEstimate={tokenEstimate}
+        />
+      }
       main={main}
       right={<RightToolOutput events={toolEvents} />}
       footerLeft={footerLeft}

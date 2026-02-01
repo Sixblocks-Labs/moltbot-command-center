@@ -18,9 +18,40 @@ function extractTextFromChatEventMessage(msg: any): string {
 export type RunTask = {
   runId: string;
   title: string;
+  subtitle?: string;
   status: 'active' | 'done' | 'error';
   updatedAt: number;
 };
+
+function parseTaskSummary(input: string): { title: string; subtitle?: string } {
+  const lines = String(input ?? '')
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const first = lines[0] ?? '';
+
+  // Prefer “Job: X” style
+  const jobMatch = first.match(/^job:\s*(.+)$/i);
+  const title = jobMatch?.[1]?.trim() || first.slice(0, 80) || 'Task';
+
+  // Prefer an “Ask:” or “Success looks like:” line as the one-liner
+  const preferred = lines.find((l) => /^ask:\s*/i.test(l)) || lines.find((l) => /^success looks like:\s*/i.test(l));
+  if (preferred) {
+    return {
+      title,
+      subtitle: preferred.replace(/^ask:\s*/i, '').replace(/^success looks like:\s*/i, '').slice(0, 120),
+    };
+  }
+
+  // Fallback: second non-empty line
+  const second = lines[1];
+  if (second) {
+    return { title, subtitle: second.slice(0, 120) };
+  }
+
+  return { title };
+}
 
 export function useGatewayChat(opts: { url: string; token: string; sessionKey?: string }) {
   const { url, token, sessionKey = 'main' } = opts;
@@ -55,6 +86,7 @@ export function useGatewayChat(opts: { url: string; token: string; sessionKey?: 
               {
                 runId: evt.runId,
                 title: `Run ${evt.runId.slice(0, 8)}`,
+                subtitle: 'Live run from gateway',
                 status,
                 updatedAt: Date.now(),
               },
@@ -135,12 +167,15 @@ export function useGatewayChat(opts: { url: string; token: string; sessionKey?: 
 
     const idempotencyKey = uid();
 
+    const summary = parseTaskSummary(content);
+
     // Create a placeholder task immediately
     setTasks((prev) =>
       [
         {
           runId: idempotencyKey,
-          title: content.split('\n')[0]?.slice(0, 80) || `Run ${idempotencyKey.slice(0, 8)}`,
+          title: summary.title,
+          subtitle: summary.subtitle,
           status: 'active' as const,
           updatedAt: Date.now(),
         },
@@ -159,9 +194,10 @@ export function useGatewayChat(opts: { url: string; token: string; sessionKey?: 
         const runId = String(res?.runId ?? idempotencyKey);
         setTasks((prev) => {
           const existing = prev.find((t) => t.runId === idempotencyKey);
-          const title = existing?.title ?? content.split('\n')[0]?.slice(0, 80) ?? `Run ${runId.slice(0, 8)}`;
+          const title = existing?.title ?? summary.title ?? `Run ${runId.slice(0, 8)}`;
+          const subtitle = existing?.subtitle ?? summary.subtitle;
           const next = prev.filter((t) => t.runId !== idempotencyKey);
-          return [{ runId, title, status: 'active' as const, updatedAt: Date.now() }, ...next].slice(0, 10);
+          return [{ runId, title, subtitle, status: 'active' as const, updatedAt: Date.now() }, ...next].slice(0, 10);
         });
       })
       .catch(() => {

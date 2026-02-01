@@ -14,6 +14,7 @@ export type SessionRow = {
 export type RunTask = {
   id: string; // runId
   title: string;
+  subtitle?: string;
   status: 'active' | 'idle' | 'done';
 };
 
@@ -59,6 +60,11 @@ export function SidebarTasks({
                 >
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium">{t.title}</div>
+                    {t.subtitle ? (
+                      <div className="truncate text-[11px] text-muted-foreground">
+                        {t.subtitle}
+                      </div>
+                    ) : null}
                     <div className="truncate text-[11px] text-slate-400">{t.id}</div>
                   </div>
                   <Badge
