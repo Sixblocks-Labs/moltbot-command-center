@@ -19,8 +19,8 @@ function ScrollArea({
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
         // Radix scrollbars sit inside the root; on iOS they can overlap/clamp text at the right edge.
-        // Add a small right padding so content never renders under the scrollbar.
-        className="focus-visible:ring-ring/50 size-full rounded-[inherit] pr-3 transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
+        // Add extra right padding + scrollbar gutter where supported so content never renders under the scrollbar.
+        className="focus-visible:ring-ring/50 size-full box-border rounded-[inherit] pr-8 [scrollbar-gutter:stable] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
