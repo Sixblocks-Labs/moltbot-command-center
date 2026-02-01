@@ -17,6 +17,17 @@ export function defaultJobs(): JobTemplate[] {
   const now = Date.now();
   return [
     {
+      id: 'discipleship',
+      title: 'Follow Jesus first (2026)',
+      progress: 'keep Jesus as my highest love; put His words into practice',
+      when: 'When I feel my projects (or anything) becoming too big in my heart',
+      prompt:
+        "Job: Follow Jesus first (2026)\n\nContext: I believe in Jesus Christ. I want my heart to belong to Him first. I’m prone to loving things in this world more than Him.\n\nAsk: Help me put things back in order using Scripture (Old + New Testament), with emphasis on who Jesus says He is. If I tell you I’m over-loving a project, respond with gentle, specific perspective + 1-3 practical next steps to obey today (James 1:22).\n\nLens phrase: The Bible as Architecture (help me think in systems while staying faithful).\n\nGuardrails: This isn’t about scrapping projects; it’s about rightly ordered loves.\n\nOutput: (1) Scripture-based perspective, (2) a short prayer/commitment draft (optional), (3) one concrete action for today.",
+      icon: 'HeartHandshake',
+      pinned: true,
+      updatedAt: now,
+    },
+    {
       id: 'ship',
       title: 'Ship code',
       progress: 'turn ambiguity into a clean, testable PR',
@@ -74,6 +85,17 @@ export function defaultJobs(): JobTemplate[] {
   ];
 }
 
+function mergeInMissingDefaultJobs(current: JobTemplate[]): JobTemplate[] {
+  const defaults = defaultJobs();
+  const existingIds = new Set(current.map((j) => j.id));
+
+  const missing = defaults.filter((d) => !existingIds.has(d.id));
+  if (!missing.length) return current;
+
+  // Add missing defaults at the top so they’re visible without disrupting the user’s custom ordering too much.
+  return [...missing, ...current];
+}
+
 export function loadJobs(): JobTemplate[] {
   if (typeof window === 'undefined') return defaultJobs();
 
@@ -98,7 +120,8 @@ export function loadJobs(): JobTemplate[] {
       }))
       .filter((j) => j.id && j.title && j.prompt);
 
-    return jobs.length ? jobs : defaultJobs();
+    const base = jobs.length ? jobs : defaultJobs();
+    return mergeInMissingDefaultJobs(base);
   } catch {
     return defaultJobs();
   }
