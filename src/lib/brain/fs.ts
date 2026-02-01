@@ -21,6 +21,7 @@ export async function listDocs(): Promise<BrainDocMeta[]> {
   const { data, error } = await supabase
     .from('brain_docs')
     .select('id, path, title, folder, updated_at')
+    .neq('folder', 'trash')
     .order('updated_at', { ascending: false });
 
   if (error) {
@@ -102,13 +103,113 @@ export async function writeDoc(docPath: string, content: string) {
   }
 }
 
-export async function deleteDoc(docPath: string) {
+function encodeTrashKey(docPath: string): string {
+  // Base64url for safe path segment.
+  return Buffer.from(docPath, 'utf8')
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
+}
+
+type TrashEnvelope = {
+  originalPath: string;
+  originalTitle: string;
+  originalFolder: string;
+  originalUpdatedAt: string;
+  deletedAt: string;
+  content: string;
+};
+
+/**
+ * Soft delete: move doc into a hidden "trash/" doc inside the same table.
+ * This avoids schema changes while still enabling undo.
+ */
+export async function trashDoc(docPath: string) {
   const supabase = getSupabaseClient();
 
-  const { error } = await supabase.from('brain_docs').delete().eq('path', docPath);
-  if (error) {
-    throw new Error(`Failed to delete document: ${error.message}`);
+  const { data, error } = await supabase
+    .from('brain_docs')
+    .select('path, title, folder, content, updated_at')
+    .eq('path', docPath)
+    .single();
+
+  if (error || !data) {
+    throw new Error(`Failed to load document for trash: ${error?.message ?? 'not found'}`);
   }
+
+  const trashPath = `trash/${encodeTrashKey(docPath)}.json`;
+  const envelope: TrashEnvelope = {
+    originalPath: String(data.path),
+    originalTitle: String(data.title ?? ''),
+    originalFolder: String(data.folder ?? 'notes'),
+    originalUpdatedAt: String(data.updated_at ?? new Date().toISOString()),
+    deletedAt: new Date().toISOString(),
+    content: String(data.content ?? ''),
+  };
+
+  const { error: insErr } = await supabase.from('brain_docs').upsert(
+    {
+      path: trashPath,
+      title: `TRASH: ${envelope.originalTitle || envelope.originalPath}`,
+      folder: 'trash',
+      content: JSON.stringify(envelope),
+      // keep trash item's updated_at as deletion time
+      updated_at: envelope.deletedAt,
+    },
+    { onConflict: 'path' }
+  );
+
+  if (insErr) {
+    throw new Error(`Failed to write trash record: ${insErr.message}`);
+  }
+
+  const { error: delErr } = await supabase.from('brain_docs').delete().eq('path', docPath);
+  if (delErr) {
+    // Best-effort cleanup if delete fails.
+    await supabase.from('brain_docs').delete().eq('path', trashPath);
+    throw new Error(`Failed to trash document: ${delErr.message}`);
+  }
+}
+
+export async function restoreDocFromTrash(originalPath: string) {
+  const supabase = getSupabaseClient();
+  const trashPath = `trash/${encodeTrashKey(originalPath)}.json`;
+
+  const { data, error } = await supabase
+    .from('brain_docs')
+    .select('content')
+    .eq('path', trashPath)
+    .single();
+
+  if (error || !data) {
+    throw new Error(`Trash record not found for: ${originalPath}`);
+  }
+
+  let env: TrashEnvelope;
+  try {
+    env = JSON.parse(String((data as any).content ?? ''));
+  } catch {
+    throw new Error('Trash record is corrupted (invalid JSON)');
+  }
+
+  const { error: restoreErr } = await supabase.from('brain_docs').upsert(
+    {
+      path: env.originalPath,
+      title: env.originalTitle,
+      folder: env.originalFolder,
+      content: env.content,
+      // Preserve original updated_at so subtitle stays the same.
+      updated_at: env.originalUpdatedAt,
+    },
+    { onConflict: 'path' }
+  );
+
+  if (restoreErr) {
+    throw new Error(`Failed to restore doc: ${restoreErr.message}`);
+  }
+
+  await supabase.from('brain_docs').delete().eq('path', trashPath);
 }
 
 export async function searchDocs(query: string): Promise<BrainDocMeta[]> {
@@ -117,7 +218,8 @@ export async function searchDocs(query: string): Promise<BrainDocMeta[]> {
 
   const { data, error } = await supabase
     .from('brain_docs')
-    .select('id, path, title, folder, content, updated_at');
+    .select('id, path, title, folder, content, updated_at')
+    .neq('folder', 'trash');
 
   if (error || !data) return [];
 

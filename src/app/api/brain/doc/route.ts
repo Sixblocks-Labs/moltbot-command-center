@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readDoc, writeDoc, deleteDoc } from '@/lib/brain/fs';
+import { readDoc, writeDoc, trashDoc } from '@/lib/brain/fs';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,7 +60,7 @@ export async function DELETE(req: Request) {
   }
 
   try {
-    await deleteDoc(docPath);
+    await trashDoc(docPath);
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: 'Failed to delete doc' }, { status: 500 });

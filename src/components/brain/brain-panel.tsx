@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -139,18 +140,49 @@ export function BrainPanel() {
     if (!selected) return;
     if (dirty) return;
 
-    const ok = window.confirm(`Delete "${selected.title}"? This cannot be undone.`);
+    const doc = selected;
+    const ok = window.confirm(`Move "${doc.title}" to Trash?`);
     if (!ok) return;
 
-    await fetch(`/api/brain/doc?path=${encodeURIComponent(selected.path)}`, {
+    const res = await fetch(`/api/brain/doc?path=${encodeURIComponent(doc.path)}`, {
       method: 'DELETE',
     });
+    if (!res.ok) {
+      const j = await res.json().catch(() => null);
+      toast.error('Could not move to Trash', {
+        description: j?.error ?? `Delete failed (${res.status})`,
+      });
+      return;
+    }
 
     setSelected(null);
     setContent('');
     setMode('view');
     setDirty(false);
     await refresh();
+
+    toast('Moved to Trash', {
+      description: doc.title,
+      action: {
+        label: 'Undo',
+        onClick: async () => {
+          const r = await fetch('/api/brain/trash', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'restore', path: doc.path }),
+          });
+          if (!r.ok) {
+            const jj = await r.json().catch(() => null);
+            toast.error('Undo failed', {
+              description: jj?.error ?? `Restore failed (${r.status})`,
+            });
+            return;
+          }
+          await refresh();
+          toast.success('Restored', { description: doc.title });
+        },
+      },
+    });
   }
 
   async function search() {
