@@ -39,7 +39,7 @@ export function Markdown({ content }: { content: string }) {
   const safe = sanitizeForDisplay(content);
 
   return (
-    <div className="prose prose-invert max-w-none prose-pre:relative prose-pre:border prose-pre:bg-muted prose-pre:p-3">
+    <div className="prose prose-invert max-w-none break-words [overflow-wrap:anywhere] prose-pre:relative prose-pre:border prose-pre:bg-muted prose-pre:p-3">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}
