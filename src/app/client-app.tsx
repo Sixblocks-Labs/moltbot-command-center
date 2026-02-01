@@ -25,9 +25,20 @@ export default function ClientApp({
 }) {
   const [tab, setTab] = useState<AppTab>('dashboard');
 
-  const { connected, messages, toolEvents, tasks, sendUserMessage, request } = useGatewayChat({
+  const [sessionKey, setSessionKey] = useState('main');
+
+  const {
+    connected,
+    messages,
+    toolEvents,
+    tasks,
+    sendUserMessage,
+    request,
+    clearLocalHistory,
+  } = useGatewayChat({
     url: gatewayUrl,
     token,
+    sessionKey,
   });
 
   const jobs = useJobs();
@@ -172,6 +183,28 @@ export default function ClientApp({
             status: t.status === 'error' ? 'idle' : t.status,
           }))}
           tokenEstimate={tokenEstimate}
+          onClearHistory={() => {
+            clearLocalHistory();
+            toast.success('Cleared local history', {
+              description: 'Transcript + runs cleared in the UI (gateway unchanged).',
+            });
+          }}
+          onRefresh={() => {
+            window.location.reload();
+          }}
+          onNewSession={() => {
+            const key = `ui-${Date.now().toString(36)}`;
+            setSessionKey(key);
+            clearLocalHistory();
+            toast.success('New session', {
+              description: `Switched to sessionKey: ${key}`,
+            });
+          }}
+          onStopTask={() => {
+            toast.message('Stop task not supported yet', {
+              description: 'We are not calling gateway stop APIs from the UI yet.',
+            });
+          }}
         />
       }
       main={main}

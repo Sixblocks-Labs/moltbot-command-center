@@ -90,7 +90,13 @@ export function ChatPanel({
                     })}
                   </span>
                 </div>
-                <Markdown content={m.content} />
+                {m.role === 'user' ? (
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-950">
+                    {m.content}
+                  </div>
+                ) : (
+                  <Markdown content={m.content} />
+                )}
               </div>
             </div>
           ))}
@@ -134,7 +140,13 @@ export function ChatPanel({
                     })}
                   </span>
                 </div>
-                <Markdown content={m.content} />
+                {m.role === 'user' ? (
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-950">
+                    {m.content}
+                  </div>
+                ) : (
+                  <Markdown content={m.content} />
+                )}
               </div>
             </div>
           ))}

@@ -22,10 +22,18 @@ export function SidebarTasks({
   sessions,
   tasks,
   tokenEstimate,
+  onNewSession,
+  onStopTask,
+  onClearHistory,
+  onRefresh,
 }: {
   sessions: SessionRow[];
   tasks: RunTask[];
   tokenEstimate: number;
+  onNewSession?: () => void;
+  onStopTask?: () => void;
+  onClearHistory?: () => void;
+  onRefresh?: () => void;
 }) {
   return (
     <aside className="space-y-4">
@@ -127,16 +135,16 @@ export function SidebarTasks({
         <Separator className="my-3" />
 
         <div className="grid grid-cols-2 gap-2">
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={onNewSession} disabled={!onNewSession}>
             New session
           </Button>
-          <Button variant="destructive" size="sm">
+          <Button variant="destructive" size="sm" onClick={onStopTask} disabled={!onStopTask}>
             Stop task
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={onClearHistory} disabled={!onClearHistory}>
             Clear history
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={onRefresh} disabled={!onRefresh}>
             Refresh
           </Button>
         </div>

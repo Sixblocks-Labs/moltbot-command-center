@@ -19,7 +19,25 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+function sanitizeForDisplay(raw: string): string {
+  const s = String(raw ?? '');
+
+  // Strip Clawdbot routing tags that may show up in assistant output.
+  // Examples:
+  // - [[reply_to_current]]
+  // - [[reply_to:123]]
+  // Sometimes these tags can be malformed/unterminated; strip those too.
+  return s
+    // well-formed tags
+    .replace(/\[\[\s*reply_to(?:_current|:[^\]]+)\s*\]\]/gi, '')
+    // unterminated tags: remove from tag start to end of line/string
+    .replace(/\[\[\s*reply_to(?:_current|:[^\]]*)/gi, '')
+    .trim();
+}
+
 export function Markdown({ content }: { content: string }) {
+  const safe = sanitizeForDisplay(content);
+
   return (
     <div className="prose prose-invert max-w-none prose-pre:relative prose-pre:border prose-pre:bg-muted prose-pre:p-3">
       <ReactMarkdown
@@ -44,7 +62,7 @@ export function Markdown({ content }: { content: string }) {
           },
         }}
       >
-        {content}
+        {safe}
       </ReactMarkdown>
     </div>
   );

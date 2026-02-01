@@ -217,5 +217,19 @@ export function useGatewayChat(opts: { url: string; token: string; sessionKey?: 
     return client.requestAsync(method, params);
   }
 
-  return { connected, messages, toolEvents, tasks, sendUserMessage, request };
+  function clearLocalHistory() {
+    setMessages([]);
+    setToolEvents([]);
+    setTasks([]);
+  }
+
+  return {
+    connected,
+    messages,
+    toolEvents,
+    tasks,
+    sendUserMessage,
+    request,
+    clearLocalHistory,
+  };
 }
