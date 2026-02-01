@@ -43,9 +43,17 @@ export function MissionControl({
   const activeCount = sessions.filter((s) => s.status === 'active').length;
 
   const [moltbook, setMoltbook] = useState<{ day: string; path: string; bullets: string[] } | null>(null);
+  const [brief, setBrief] = useState<{
+    day: string;
+    path: string;
+    priorities: string[];
+    deltas: string[];
+    risks: string[];
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+
     fetch('/api/moltbook/daily')
       .then((r) => r.json())
       .then((j) => {
@@ -56,6 +64,24 @@ export function MissionControl({
         if (cancelled) return;
         setMoltbook(null);
       });
+
+    fetch('/api/brief/daily')
+      .then((r) => r.json())
+      .then((j) => {
+        if (cancelled) return;
+        setBrief({
+          day: j.day,
+          path: j.path,
+          priorities: Array.isArray(j.priorities) ? j.priorities : [],
+          deltas: Array.isArray(j.deltas) ? j.deltas : [],
+          risks: Array.isArray(j.risks) ? j.risks : [],
+        });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setBrief(null);
+      });
+
     return () => {
       cancelled = true;
     };
@@ -112,6 +138,39 @@ export function MissionControl({
               <span className="font-medium">Pick a job → ship a chunk</span>
             </li>
           </ul>
+
+          <Separator className="my-3" />
+
+          <div>
+            <div className="text-xs font-semibold">Morning Brief (Daily)</div>
+            <div className="mt-2 space-y-2 text-sm">
+              {(brief?.deltas?.length ? brief.deltas : []).slice(0, 6).map((b, i) => (
+                <div key={i} className="text-muted-foreground">
+                  • {b.replace(/^[-•]\s+/, '')}
+                </div>
+              ))}
+              {(brief?.risks?.length ? brief.risks : []).slice(0, 4).map((b, i) => (
+                <div key={`r-${i}`} className="text-muted-foreground">
+                  • {b.replace(/^[-•]\s+/, '')}
+                </div>
+              ))}
+              {(brief?.priorities?.length ? brief.priorities : []).slice(0, 3).map((b, i) => (
+                <div key={`p-${i}`} className="text-slate-200/90">
+                  {b.replace(/^[-•]\s+/, '')}
+                </div>
+              ))}
+              {!brief?.priorities?.length && !brief?.deltas?.length && !brief?.risks?.length ? (
+                <div className="text-muted-foreground">
+                  No brief yet. (Scheduled daily at 8:15 AM ET.)
+                </div>
+              ) : null}
+            </div>
+            <div className="mt-2 text-[11px] text-muted-foreground">
+              {brief?.day
+                ? `Source: ~/clawdbot-brain/journal/brief/${brief.day}-morning-brief.md`
+                : 'Source: ~/clawdbot-brain/journal/brief/YYYY-MM-DD-morning-brief.md'}
+            </div>
+          </div>
 
           <Separator className="my-3" />
 
