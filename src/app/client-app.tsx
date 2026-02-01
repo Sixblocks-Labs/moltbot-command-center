@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Shell, type AppTab } from '@/components/app/shell';
 import { SidebarTasks } from '@/components/app/sidebar-tasks';
@@ -16,6 +17,12 @@ function estimateTokens(text: string) {
   return Math.ceil(text.length / 4);
 }
 
+const TAB_STORAGE_KEY = 'cc.activeTab';
+
+function isAppTab(v: any): v is AppTab {
+  return v === 'dashboard' || v === 'chat' || v === 'brain';
+}
+
 export default function ClientApp({
   gatewayUrl,
   token,
@@ -23,6 +30,8 @@ export default function ClientApp({
   gatewayUrl: string;
   token: string;
 }) {
+  const router = useRouter();
+
   const [tab, setTab] = useState<AppTab>('dashboard');
 
   const [sessionKey, setSessionKey] = useState('main');
@@ -129,6 +138,30 @@ export default function ClientApp({
     return `Token est: ${tokenEstimate.toLocaleString()} • ${new Date().toLocaleTimeString()}`;
   }, [tokenEstimate]);
 
+  // Restore active tab from URL (?tab=brain) or localStorage.
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get('tab');
+      if (isAppTab(fromUrl)) {
+        setTab(fromUrl);
+        window.localStorage.setItem(TAB_STORAGE_KEY, fromUrl);
+        return;
+      }
+
+      const stored = window.localStorage.getItem(TAB_STORAGE_KEY);
+      if (isAppTab(stored)) {
+        setTab(stored);
+        // Also reflect in URL so refresh preserves state even if storage is cleared.
+        params.set('tab', stored);
+        router.replace(`/?${params.toString()}`);
+      }
+    } catch {
+      // ignore
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     fetch('/api/brain/ensure', { method: 'POST' }).catch(() => {});
   }, []);
@@ -168,11 +201,28 @@ export default function ClientApp({
       <BrainPanel />
     );
 
+  function changeTab(next: AppTab) {
+    setTab(next);
+    try {
+      window.localStorage.setItem(TAB_STORAGE_KEY, next);
+    } catch {
+      // ignore
+    }
+
+    try {
+      const params = new URLSearchParams(window.location.search);
+      params.set('tab', next);
+      router.replace(`/?${params.toString()}`);
+    } catch {
+      // ignore
+    }
+  }
+
   return (
     <Shell
       tab={tab}
       connected={connected}
-      onTabChange={setTab}
+      onTabChange={changeTab}
       left={
         <SidebarTasks
           sessions={sessions}
