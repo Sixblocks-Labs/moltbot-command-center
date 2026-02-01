@@ -47,6 +47,7 @@ export function BrainPanel() {
   const [q, setQ] = useState('');
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [sort, setSort] = useState<'date' | 'title' | 'tag'>('date');
+  const [isIOS, setIsIOS] = useState(false);
 
   async function refresh() {
     await fetch('/api/brain/ensure', { method: 'POST' });
@@ -69,6 +70,17 @@ export function BrainPanel() {
 
   useEffect(() => {
     refresh();
+  }, []);
+
+  useEffect(() => {
+    // iOS Safari has long-standing issues with custom scroll areas + overflow clipping.
+    // We use native scrolling for the doc pane on iOS.
+    try {
+      const ua = navigator.userAgent || '';
+      setIsIOS(/iPad|iPhone|iPod/.test(ua));
+    } catch {
+      setIsIOS(false);
+    }
   }, []);
 
   const [dirty, setDirty] = useState(false);
@@ -333,20 +345,40 @@ export function BrainPanel() {
                 </div>
               </div>
 
-              <ScrollArea className="h-full p-4">
-                {mode === 'edit' ? (
-                  <Textarea
-                    value={content}
-                    onChange={(e) => {
-                      setContent(e.target.value);
-                      setDirty(true);
-                    }}
-                    className="min-h-[65dvh] font-mono text-xs"
-                  />
-                ) : (
-                  <Markdown content={content} />
-                )}
-              </ScrollArea>
+              {isIOS ? (
+                <div
+                  className="h-full overflow-y-auto p-4"
+                  style={{ WebkitOverflowScrolling: 'touch' } as any}
+                >
+                  {mode === 'edit' ? (
+                    <Textarea
+                      value={content}
+                      onChange={(e) => {
+                        setContent(e.target.value);
+                        setDirty(true);
+                      }}
+                      className="min-h-[65dvh] font-mono text-xs"
+                    />
+                  ) : (
+                    <Markdown content={content} />
+                  )}
+                </div>
+              ) : (
+                <ScrollArea className="h-full p-4">
+                  {mode === 'edit' ? (
+                    <Textarea
+                      value={content}
+                      onChange={(e) => {
+                        setContent(e.target.value);
+                        setDirty(true);
+                      }}
+                      className="min-h-[65dvh] font-mono text-xs"
+                    />
+                  ) : (
+                    <Markdown content={content} />
+                  )}
+                </ScrollArea>
+              )}
             </div>
           )}
         </div>
