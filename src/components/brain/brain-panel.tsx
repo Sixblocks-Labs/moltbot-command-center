@@ -144,17 +144,17 @@ export function BrainPanel() {
   );
 
   return (
-    <Card className="min-h-[60vh] md:h-[calc(100dvh-140px)] overflow-visible md:overflow-hidden">
-      <div className="flex items-center justify-between border-b px-4 py-3">
-        <div>
-          <div className="text-sm font-semibold">{title}</div>
+    <Card className="min-h-[60vh] md:h-[calc(100dvh-140px)] overflow-hidden">
+      <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <div className="truncate text-sm font-semibold">{title}</div>
           <div className="text-xs text-muted-foreground">
             Documents from ~/clawdbot-brain
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
           <Button size="sm" variant="outline" onClick={quickCapture}>
-            <Zap className="h-4 w-4 mr-2" /> Quick capture
+            <Zap className="mr-2 h-4 w-4" /> Quick capture
           </Button>
           <NewDocSheet
             onCreated={async (docPath) => {
