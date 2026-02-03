@@ -109,6 +109,7 @@ export function Shell({
                       {l}
                     </option>
                   ))}
+                  <option value="__new__">+ New lane…</option>
                 </select>
               </div>
             ) : null}
@@ -145,6 +146,7 @@ export function Shell({
                       {l}
                     </option>
                   ))}
+                  <option value="__new__">+ New lane…</option>
                 </select>
               </div>
             ) : null}

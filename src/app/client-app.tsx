@@ -19,7 +19,8 @@ function estimateTokens(text: string) {
 
 const TAB_STORAGE_KEY = 'cc.activeTab';
 const LANE_STORAGE_KEY = 'cc.activeLane';
-const LANES = ['Command Center', 'ARG', 'BizDev'] as const;
+const LANES_STORAGE_KEY = 'cc.lanes';
+const DEFAULT_LANES = ['Command Center', 'ARG', 'BizDev'] as const;
 
 function isAppTab(v: any): v is AppTab {
   return v === 'dashboard' || v === 'chat' || v === 'brain';
@@ -36,7 +37,8 @@ export default function ClientApp({
 
   const [tab, setTab] = useState<AppTab>('dashboard');
 
-  const [lane, setLane] = useState<(typeof LANES)[number]>('Command Center');
+  const [lanes, setLanes] = useState<string[]>([...DEFAULT_LANES]);
+  const [lane, setLane] = useState<string>('Command Center');
   const [sessionKey, setSessionKey] = useState('main');
 
   const {
@@ -141,12 +143,24 @@ export default function ClientApp({
     return `Token est: ${tokenEstimate.toLocaleString()} • ${new Date().toLocaleTimeString()}`;
   }, [tokenEstimate]);
 
-  // Restore lane from localStorage.
+  // Restore lanes + lane from localStorage.
   useEffect(() => {
     try {
+      const rawLanes = window.localStorage.getItem(LANES_STORAGE_KEY);
+      if (rawLanes) {
+        const parsed = JSON.parse(rawLanes);
+        if (Array.isArray(parsed) && parsed.every((x) => typeof x === 'string' && x.trim())) {
+          setLanes(parsed);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    try {
       const stored = window.localStorage.getItem(LANE_STORAGE_KEY);
-      if (LANES.includes(stored as any)) {
-        setLane(stored as any);
+      if (stored && stored.trim()) {
+        setLane(stored);
         setSessionKey(`${stored}:main`);
       }
     } catch {
@@ -239,9 +253,33 @@ export default function ClientApp({
       tab={tab}
       connected={connected}
       lane={lane}
-      lanes={[...LANES] as any}
+      lanes={lanes}
       onLaneChange={(next) => {
-        const nextLane = next as any;
+        if (next === '__new__') {
+          const name = window.prompt('New lane name?');
+          const cleaned = String(name || '').trim();
+          if (!cleaned) return;
+
+          setLanes((prev) => {
+            const nextLanes = prev.includes(cleaned) ? prev : [...prev, cleaned];
+            try {
+              window.localStorage.setItem(LANES_STORAGE_KEY, JSON.stringify(nextLanes));
+            } catch {}
+            return nextLanes;
+          });
+
+          setLane(cleaned);
+          setSessionKey(`${cleaned}:main`);
+          clearLocalHistory();
+          try {
+            window.localStorage.setItem(LANE_STORAGE_KEY, cleaned);
+          } catch {}
+
+          toast.success('Lane created', { description: `Now in: ${cleaned}` });
+          return;
+        }
+
+        const nextLane = String(next);
         setLane(nextLane);
         setSessionKey(`${nextLane}:main`);
         clearLocalHistory();
