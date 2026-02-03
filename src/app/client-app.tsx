@@ -53,7 +53,7 @@ export default function ClientApp({
     sessionKey,
   });
 
-  const jobs = useJobs();
+  const jobs = useJobs(lane);
 
   const tokenEstimate = useMemo(() => {
     const combined = messages.map((m) => m.content).join('\n');

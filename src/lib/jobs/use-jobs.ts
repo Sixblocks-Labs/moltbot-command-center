@@ -3,17 +3,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { loadJobs, saveJobs, type JobTemplate, newJobTemplate, PROTECTED_JOB_IDS } from './store';
 
-export function useJobs() {
+export function useJobs(lane?: string) {
   const [jobs, setJobs] = useState<JobTemplate[]>([]);
 
   useEffect(() => {
-    setJobs(loadJobs());
-  }, []);
+    setJobs(loadJobs(lane));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lane]);
 
   useEffect(() => {
     if (!jobs.length) return;
-    saveJobs(jobs);
-  }, [jobs]);
+    saveJobs(jobs, lane);
+  }, [jobs, lane]);
 
   const sorted = useMemo(() => {
     const pinned = jobs.filter((j) => j.pinned);
@@ -60,7 +61,7 @@ export function useJobs() {
   }
 
   function resetDefaults() {
-    setJobs(loadJobs());
+    setJobs(loadJobs(lane));
   }
 
   return { jobs: sorted, setJobs, upsert, remove, togglePin, create, resetDefaults };

@@ -155,7 +155,7 @@ export function ArgInspirationPanel() {
       </div>
 
       <div className="mt-3 text-[11px] text-muted-foreground">
-        Tip: when you submit inspiration via the job card, include a tag so filtering works.
+        Tip: submit small, frequent, tagged blocks (micro-submissions). It keeps the log clean and makes Saturday synthesis much sharper.
       </div>
     </section>
   );

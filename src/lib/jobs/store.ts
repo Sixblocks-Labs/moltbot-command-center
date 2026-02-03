@@ -28,7 +28,18 @@ export type JobTemplate = {
 
 // Bump version when default job set changes meaningfully.
 // (Forcing a refresh so updated baseline copy ships to all devices.)
-const STORAGE_KEY = 'mcc.jobTemplates.v6';
+const STORAGE_KEY_BASE = 'mcc.jobTemplates.v6';
+
+function slugLane(lane?: string) {
+  return String(lane || 'global')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+export function jobsStorageKey(lane?: string) {
+  return `${STORAGE_KEY_BASE}.${slugLane(lane)}`;
+}
 
 export function defaultJobs(): JobTemplate[] {
   // Use a fixed baseline timestamp to keep ordering stable across reloads.
@@ -196,7 +207,7 @@ export function defaultJobs(): JobTemplate[] {
       progress: 'Capture + organize ARG infrastructure decisions (tagged).',
       when: 'We’re deciding how the ARG runs: platforms, trail markers, timelines, community ops, etc.',
       prompt:
-        "Job: ARG infrastructure\n\nContext:\n- We’re designing the infrastructure layer of an ARG (delivery surfaces, operations, and player journey scaffolding).\n\nAsk:\n- I’ll paste an infrastructure idea or decision.\n- You will capture it accretively in ~/clawdbot/.moltbot/arginspo.md with a timestamp header and the selected Tag (single tag).\n\nTag: [SELECT_ONE_TAG]\n\nRules:\n- NO edits to my pasted content.\n- Prepend your appended block with:\n  - `## <timestamp ET>`\n  - `Tag: <Tag>`\n\nThen confirm back with the exact header + tag you appended.",
+        "Job: ARG infrastructure\n\nContext:\n- We’re designing the infrastructure layer of an ARG (delivery surfaces, operations, and player journey scaffolding).\n\nAsk:\n- I’ll paste an infrastructure idea or a decision.\n- You will capture it accretively in ~/clawdbot/.moltbot/arginspo.md with a timestamp header and the selected Tag (single tag).\n\nTag: [SELECT_ONE_TAG]\n\nADR-lite (optional, recommended):\n- Decision:\n- Why (1–3 bullets):\n- Tradeoffs (pros/cons):\n- Next test (what we’ll try to validate):\n\nRules:\n- NO edits to my pasted content.\n- Prepend your appended block with:\n  - `## <timestamp ET>`\n  - `Tag: <Tag>`\n\nThen confirm back with the exact header + tag you appended.",
       icon: 'Wrench',
       pinned: true,
       sortIndex: 11,
@@ -230,11 +241,11 @@ function mergeInMissingDefaultJobs(current: JobTemplate[]): JobTemplate[] {
   return [...missing, ...current];
 }
 
-export function loadJobs(): JobTemplate[] {
+export function loadJobs(lane?: string): JobTemplate[] {
   if (typeof window === 'undefined') return defaultJobs();
 
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(jobsStorageKey(lane));
     if (!raw) return defaultJobs();
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return defaultJobs();
@@ -262,9 +273,9 @@ export function loadJobs(): JobTemplate[] {
   }
 }
 
-export function saveJobs(jobs: JobTemplate[]) {
+export function saveJobs(jobs: JobTemplate[], lane?: string) {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
+  window.localStorage.setItem(jobsStorageKey(lane), JSON.stringify(jobs));
 }
 
 export function newJobTemplate(): JobTemplate {
