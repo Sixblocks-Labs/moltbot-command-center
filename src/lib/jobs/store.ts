@@ -18,7 +18,7 @@ export type JobTemplate = {
 
 // Bump version when default job set changes meaningfully.
 // (Forcing a refresh so updated baseline copy ships to all devices.)
-const STORAGE_KEY = 'mcc.jobTemplates.v4';
+const STORAGE_KEY = 'mcc.jobTemplates.v5';
 
 export function defaultJobs(): JobTemplate[] {
   // Use a fixed baseline timestamp to keep ordering stable across reloads.
@@ -179,7 +179,21 @@ export function defaultJobs(): JobTemplate[] {
       updatedAt: now,
     },
 
-    // 11) Plan the next chunk
+    // 11) ARG infrastructure
+    {
+      id: 'arg-infrastructure',
+      title: 'ARG infrastructure',
+      progress: 'Capture + organize ARG infrastructure decisions (tagged).',
+      when: 'We’re deciding how the ARG runs: platforms, trail markers, timelines, community ops, etc.',
+      prompt:
+        "Job: ARG infrastructure\n\nContext:\n- We’re designing the infrastructure layer of an ARG (delivery surfaces, operations, and player journey scaffolding).\n\nAsk:\n- I’ll paste an infrastructure idea or decision.\n- You will capture it accretively in ~/clawdbot/.moltbot/arginspo.md with a timestamp header and the selected Tag (single tag).\n\nTag: [SELECT_ONE_TAG]\n\nRules:\n- NO edits to my pasted content.\n- Prepend your appended block with:\n  - `## <timestamp ET>`\n  - `Tag: <Tag>`\n\nThen confirm back with the exact header + tag you appended.",
+      icon: 'Wrench',
+      pinned: true,
+      sortIndex: 11,
+      updatedAt: now,
+    },
+
+    // 12) Plan the next chunk
     {
       id: 'plan-next-chunk',
       title: 'Plan the next chunk',
@@ -189,7 +203,7 @@ export function defaultJobs(): JobTemplate[] {
         "Job: Plan the next chunk\n\nHere’s everything on my plate right now: [DESCRIBE].\n\nDo:\n- Look at what I’ve been working on in our recent sessions\n- Check ~/clawdbot-brain/tasks/ for open items\n- Review any active GitHub issues in Sixblocks-Labs\n\nThen give me a prioritized plan:\n- what to do today (max 3 things)\n- what to defer to this week\n- what to drop or delegate\n\nBe opinionated — I want your recommendation, not a menu.",
       icon: 'ListTodo',
       pinned: true,
-      sortIndex: 11,
+      sortIndex: 12,
       updatedAt: now,
     },
   ];

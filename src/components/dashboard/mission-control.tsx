@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import type { JobTemplate } from '@/lib/jobs/store';
 import { JobsSheet } from './jobs-sheet';
+import { ArgInspirationPanel, ARG_TAGS } from './arg-inspiration-panel';
 
 export function MissionControl({
   connected,
@@ -50,6 +51,11 @@ export function MissionControl({
     deltas: string[];
     risks: string[];
   } | null>(null);
+
+  const [argTagByJobId, setArgTagByJobId] = useState<Record<string, string>>({
+    'arg-infrastructure': ARG_TAGS[0],
+    'arg-inspiration': ARG_TAGS[0],
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -245,12 +251,41 @@ export function MissionControl({
                     <div className="mt-3 text-[11px] text-muted-foreground">
                       <span className="text-slate-200/80">When:</span> {j.when}
                     </div>
+
+                    {j.id === 'arg-infrastructure' || j.id === 'arg-inspiration' ? (
+                      <div className="mt-3 flex items-center gap-2">
+                        <div className="text-[11px] text-muted-foreground">Tag</div>
+                        <select
+                          className="h-8 flex-1 rounded-md border border-input bg-background px-2 text-xs"
+                          value={argTagByJobId[j.id] || ARG_TAGS[0]}
+                          onChange={(e) =>
+                            setArgTagByJobId((prev) => ({
+                              ...prev,
+                              [j.id]: e.target.value,
+                            }))
+                          }
+                        >
+                          {ARG_TAGS.map((t) => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : null}
                   </div>
 
                   <Button
                     size="sm"
                     className="shrink-0"
-                    onClick={() => onHire({ id: j.id, title: j.title, prompt: j.prompt })}
+                    onClick={() => {
+                      const isArgJob = j.id === 'arg-infrastructure' || j.id === 'arg-inspiration';
+                      const tag = isArgJob ? (argTagByJobId[j.id] || ARG_TAGS[0]) : undefined;
+                      const prompt = isArgJob
+                        ? `${j.prompt.replace('[SELECT_ONE_TAG]', tag || '')}\n\nSelected Tag: ${tag}`
+                        : j.prompt;
+                      onHire({ id: j.id, title: j.title, prompt });
+                    }}
                   >
                     Hire
                   </Button>
@@ -264,6 +299,8 @@ export function MissionControl({
             output.
           </div>
         </section>
+
+        <ArgInspirationPanel />
 
           <section className="rounded-xl border bg-card p-4">
             <div className="text-sm font-semibold">Task Tracker</div>
