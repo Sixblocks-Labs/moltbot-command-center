@@ -206,7 +206,10 @@ export default function ClientApp({
       return;
     }
 
-    sendUserMessage(job.prompt);
+    const p = job.id === 'coding-assistant'
+      ? job.prompt.replace('[LANE]', lane)
+      : job.prompt;
+    sendUserMessage(p);
     toast.success(`Hired for: ${job.title}`, {
       description: 'Prompt sent to Chat.',
     });

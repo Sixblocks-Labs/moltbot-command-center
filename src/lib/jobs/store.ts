@@ -8,6 +8,19 @@ export const PROTECTED_JOB_IDS = [
   'arg-infrastructure',
 ] as const;
 
+// Jobs removed from the product (not just unpinned). We filter these out even if
+// they exist in older localStorage.
+export const REMOVED_JOB_IDS = [
+  'ship-it',
+  'sensemake',
+  'debug-this',
+  'morning-brief',
+  'overnight-build',
+  'wire-it-up',
+  'secure-audit',
+  'plan-next-chunk',
+] as const;
+
 export type ProtectedJobId = (typeof PROTECTED_JOB_IDS)[number];
 
 export type JobTemplate = {
@@ -28,7 +41,7 @@ export type JobTemplate = {
 
 // Bump version when default job set changes meaningfully.
 // (Forcing a refresh so updated baseline copy ships to all devices.)
-const STORAGE_KEY_BASE = 'mcc.jobTemplates.v6';
+const STORAGE_KEY_BASE = 'mcc.jobTemplates.v8';
 
 function slugLane(lane?: string) {
   return String(lane || 'global')
@@ -60,21 +73,7 @@ export function defaultJobs(): JobTemplate[] {
       updatedAt: now,
     },
 
-    // 1) Ship it
-    {
-      id: 'ship-it',
-      title: 'Ship it',
-      progress: 'Build + deploy something today (fast, correct, shipped).',
-      when: 'I need something built and deployed today.',
-      prompt:
-        "Job: Ship it\n\nI need you to build and deploy something for me today. Here’s what I want: [DESCRIBE].\n\nRequirements:\n- Scaffold it in ~/projects/\n- Use Next.js 14 + Tailwind\n- Use Supabase if needed\n- Push it to Sixblocks-Labs on GitHub\n- Deploy to Vercel\n\nIf anything’s unclear, ask me before you start building — don’t guess.\n\nWhen you’re done:\n- Send me the live URL\n- Send me the repo link",
-      icon: 'Bolt',
-      pinned: true,
-      sortIndex: 1,
-      updatedAt: now,
-    },
-
-    // 2) Prospect research
+    // 1) Prospect research
     {
       id: 'prospect-research',
       title: 'Prospect research',
@@ -88,91 +87,21 @@ export function defaultJobs(): JobTemplate[] {
       updatedAt: now,
     },
 
-    // 3) Sensemake
+    // 3) Coding Assistant
     {
-      id: 'sensemake',
-      title: 'Sensemake',
-      progress: 'Extract the few insights that matter + translate into action.',
-      when: 'I just read/watched something that might change my thinking.',
+      id: 'coding-assistant',
+      title: 'Coding Assistant',
+      progress: 'Pair program in the current lane: implement, debug, refactor, ship.',
+      when: 'I’m coding and want you in the loop (fast, precise, no fluff).',
       prompt:
-        "Job: Sensemake\n\nHere it is: [URL OR TEXT].\n\nPull out the 3-5 insights that are actually relevant to what I’m building at Sixblocks-Labs.\nFor each one:\n- what it means\n- whether it conflicts with anything I’m currently doing\n- one concrete thing I should consider doing differently\n\nSave your analysis to ~/clawdbot-brain/research/ with today’s date.\nKeep it tight — no filler.",
-      icon: 'Telescope',
+        "Job: Coding Assistant\n\nLane: [LANE]\n\nContext:\n- I’m working in this lane and I want you as my coding partner.\n\nAsk:\n- Help me implement features, debug issues, write tests, and keep changes shippable.\n\nRules:\n- If requirements are unclear, ask 1–3 clarifying questions (don’t guess).\n- Prefer small diffs, fast feedback loops, and verified steps.\n- When you propose commands, keep them copy/pasteable.\n\nNow here’s what I need:\n[PASTE REQUEST / ERROR / CONTEXT]",
+      icon: 'Code',
       pinned: true,
       sortIndex: 3,
       updatedAt: now,
     },
 
-    // 4) Debug this
-    {
-      id: 'debug-this',
-      title: 'Debug this',
-      progress: 'Find root cause and fix (no thrash).',
-      when: "Something’s broken and I can show you the error + context.",
-      prompt:
-        "Job: Debug this\n\nSomething’s broken. Here’s the error and what I was doing: [ERROR + CONTEXT].\n\nInstructions:\n- Trace it to the root cause\n- Don’t give me 5 guesses — give me the most likely cause and the exact commands to fix it\n- If you need more info, ask me one specific question before guessing\n- If your first fix doesn’t work, research the issue before suggesting the next one",
-      icon: 'Bug',
-      pinned: true,
-      sortIndex: 4,
-      updatedAt: now,
-    },
-
-    // 5) Morning brief
-    {
-      id: 'morning-brief',
-      title: 'Morning brief',
-      progress: 'Scan the stack; recommend today’s top 3 priorities.',
-      when: 'Start of day.',
-      prompt:
-        "Job: Morning brief\n\nScan my stack and give me a brief:\n- any new GitHub issues or PRs in Sixblocks-Labs\n- Vercel deployment status and any overnight failures\n- ConvertKit new subscribers or unsubscribes since yesterday\n- Airtable pipeline changes\n- the status of any sessions or tasks you were working on overnight\n\nEnd with your top 3 recommended priorities for today.\nKeep the whole thing under 300 words.",
-      icon: 'Sun',
-      pinned: true,
-      sortIndex: 5,
-      updatedAt: now,
-    },
-
-    // 6) Overnight build
-    {
-      id: 'overnight-build',
-      title: 'Overnight build',
-      progress: 'Build overnight in chunks; ship what’s ready by morning.',
-      when: 'I’m signing off and want progress by morning.',
-      prompt:
-        "Job: Overnight build\n\nHere’s what I want built by morning: [DESCRIBE SPEC].\n\nInstructions:\n- Break it into chunks to avoid timeouts\n- Use my standard stack\n- Push to Sixblocks-Labs on GitHub and deploy to Vercel\n- If you hit a blocker, document it in ~/clawdbot-brain/tasks/ and move on to the next chunk — don’t stop entirely\n\nAt 7am, send me a summary with:\n- what’s working\n- what’s not\n- the live URL\n- what still needs my input",
-      icon: 'Moon',
-      pinned: true,
-      sortIndex: 6,
-      updatedAt: now,
-    },
-
-    // 7) Wire it up
-    {
-      id: 'wire-it-up',
-      title: 'Wire it up',
-      progress: 'Connect a new service to the stack (step-by-step + verified).',
-      when: 'I just signed up for a new service and need it connected.',
-      prompt:
-        "Job: Wire it up\n\nThe service is: [NAME].\n\nWalk me through it step by step:\n- where to find the API key\n- the exact export command for ~/.bashrc\n- which skill to install via clawdhub\n- a test command to confirm it’s working\n\nRules:\n- One step at a time\n- Wait for me to say “done” before moving to the next\n- If there’s no existing skill, tell me — don’t install something unvetted.",
-      icon: 'Plug',
-      pinned: true,
-      sortIndex: 7,
-      updatedAt: now,
-    },
-
-    // 8) Secure + audit
-    {
-      id: 'secure-audit',
-      title: 'Secure + audit',
-      progress: 'Audit security posture; output exact remediation commands.',
-      when: 'We need to confirm the Moltbot setup is still locked down.',
-      prompt:
-        "Job: Secure + audit\n\nRun a full security check on my Moltbot setup.\n\nDo:\n- Run: clawdbot security audit –deep\n- Check that the gateway is only accessible via Tailscale\n- Confirm credential files are still 600 permissions\n- Confirm no unapproved skills were added\n- Confirm firewall rules on port 18789 are intact\n\nIf anything needs rotation or fixing, give me the exact commands.\nSave the results to: ~/clawdbot-brain/notes/security-audit-[today’s date].md",
-      icon: 'ShieldCheck',
-      pinned: true,
-      sortIndex: 8,
-      updatedAt: now,
-    },
-
-    // 9) Write + publish
+    // 4) Write + publish
     {
       id: 'write-publish',
       title: 'Write + publish',
@@ -264,10 +193,12 @@ export function loadJobs(lane?: string): JobTemplate[] {
         sortIndex: typeof j.sortIndex === 'number' ? j.sortIndex : undefined,
         updatedAt: typeof j.updatedAt === 'number' ? j.updatedAt : now,
       }))
-      .filter((j) => j.id && j.title && j.prompt);
+      .filter((j) => j.id && j.title && j.prompt)
+      .filter((j) => !REMOVED_JOB_IDS.includes(j.id as any));
 
     const base = jobs.length ? jobs : defaultJobs();
-    return mergeInMissingDefaultJobs(base);
+    const merged = mergeInMissingDefaultJobs(base);
+    return merged.filter((j) => !REMOVED_JOB_IDS.includes(j.id as any));
   } catch {
     return defaultJobs();
   }
