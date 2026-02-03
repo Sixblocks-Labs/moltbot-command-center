@@ -19,6 +19,9 @@ export function Shell({
   right,
   footerLeft,
   footerRight,
+  lane,
+  lanes,
+  onLaneChange,
 }: {
   tab: AppTab;
   connected: boolean;
@@ -28,7 +31,10 @@ export function Shell({
   right: React.ReactNode;
   footerLeft?: React.ReactNode;
   footerRight?: React.ReactNode;
-}) {
+  lane?: string;
+  lanes?: string[];
+  onLaneChange?: (lane: string) => void;
+}) { 
   return (
     <div className="min-h-[100svh] min-h-dvh bg-background text-foreground overflow-x-hidden pb-[env(safe-area-inset-bottom)] flex flex-col">
       <header className="sticky top-0 z-20 border-b border-white/10 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50">
@@ -90,6 +96,22 @@ export function Shell({
           </div>
 
           <div className="flex items-center justify-between gap-2 md:justify-end">
+            {lane && lanes?.length && onLaneChange ? (
+              <div className="hidden md:flex items-center gap-2 mr-2">
+                <span className="text-[11px] text-muted-foreground">Lane</span>
+                <select
+                  className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+                  value={lane}
+                  onChange={(e) => onLaneChange(e.target.value)}
+                >
+                  {lanes.map((l) => (
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
             <div className="flex items-center gap-2">
               <span
                 className={
@@ -110,6 +132,22 @@ export function Shell({
                 {connected ? 'Online' : 'Offline'}
               </Badge>
             </div>
+            {/* Mobile lane selector */}
+            {lane && lanes?.length && onLaneChange ? (
+              <div className="md:hidden">
+                <select
+                  className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+                  value={lane}
+                  onChange={(e) => onLaneChange(e.target.value)}
+                >
+                  {lanes.map((l) => (
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
             <ThemeToggle />
           </div>
         </div>

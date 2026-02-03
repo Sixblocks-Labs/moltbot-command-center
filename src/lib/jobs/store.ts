@@ -1,5 +1,15 @@
 'use client';
 
+export const PROTECTED_JOB_IDS = [
+  'discipleship',
+  'prospect-research',
+  'write-publish',
+  'arg-inspiration',
+  'arg-infrastructure',
+] as const;
+
+export type ProtectedJobId = (typeof PROTECTED_JOB_IDS)[number];
+
 export type JobTemplate = {
   id: string;
   title: string;
@@ -18,7 +28,7 @@ export type JobTemplate = {
 
 // Bump version when default job set changes meaningfully.
 // (Forcing a refresh so updated baseline copy ships to all devices.)
-const STORAGE_KEY = 'mcc.jobTemplates.v5';
+const STORAGE_KEY = 'mcc.jobTemplates.v6';
 
 export function defaultJobs(): JobTemplate[] {
   // Use a fixed baseline timestamp to keep ordering stable across reloads.

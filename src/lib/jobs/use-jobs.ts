@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { loadJobs, saveJobs, type JobTemplate, newJobTemplate } from './store';
+import { loadJobs, saveJobs, type JobTemplate, newJobTemplate, PROTECTED_JOB_IDS } from './store';
 
 export function useJobs() {
   const [jobs, setJobs] = useState<JobTemplate[]>([]);
@@ -43,6 +43,7 @@ export function useJobs() {
   }
 
   function remove(id: string) {
+    if (PROTECTED_JOB_IDS.includes(id as any)) return;
     setJobs((prev) => prev.filter((j) => j.id !== id));
   }
 

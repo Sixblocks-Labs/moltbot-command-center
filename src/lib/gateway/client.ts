@@ -62,18 +62,70 @@ export function useGatewayChat(opts: { url: string; token: string; sessionKey?: 
   const [tasks, setTasks] = useState<RunTask[]>([]);
 
   const clientRef = useRef<BrowserGatewayClient | null>(null);
+  const reconnectAttemptRef = useRef(0);
+  const reconnectTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!url) return;
 
-    const client = new BrowserGatewayClient({
-      url,
-      token: token || undefined,
-      onHelloOk: () => setConnected(true),
-      onClose: () => setConnected(false),
-      onError: () => setConnected(false),
-      onChatEvent: (evt: ChatEvent) => {
-        if (!evt) return;
+    let cancelled = false;
+
+    function clearReconnectTimer() {
+      if (reconnectTimerRef.current) {
+        window.clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+    }
+
+    function scheduleReconnect(reason: string) {
+      if (cancelled) return;
+      clearReconnectTimer();
+
+      // Exponential backoff with cap.
+      const attempt = Math.min(10, reconnectAttemptRef.current + 1);
+      reconnectAttemptRef.current = attempt;
+
+      const baseMs = Math.min(15_000, 750 * 2 ** (attempt - 1));
+      const jitterMs = Math.floor(Math.random() * 250);
+      const delayMs = baseMs + jitterMs;
+
+      reconnectTimerRef.current = window.setTimeout(() => {
+        if (cancelled) return;
+        connect();
+      }, delayMs);
+
+      // eslint-disable-next-line no-console
+      console.warn(`[gateway] disconnected (${reason}); reconnect attempt ${attempt} in ${delayMs}ms`);
+    }
+
+    function connect() {
+      if (cancelled) return;
+
+      // Ensure previous client is stopped.
+      try {
+        clientRef.current?.stop();
+      } catch {
+        // ignore
+      }
+
+      const client = new BrowserGatewayClient({
+        url,
+        token: token || undefined,
+        onHelloOk: () => {
+          reconnectAttemptRef.current = 0;
+          setConnected(true);
+          clearReconnectTimer();
+        },
+        onClose: (_code: number, reason: string) => {
+          setConnected(false);
+          scheduleReconnect(reason || 'close');
+        },
+        onError: (err: string) => {
+          setConnected(false);
+          scheduleReconnect(err || 'error');
+        },
+        onChatEvent: (evt: ChatEvent) => {
+          if (!evt) return;
 
         // Update run tasks state
         setTasks((prev) => {
@@ -147,13 +199,22 @@ export function useGatewayChat(opts: { url: string; token: string; sessionKey?: 
           return next;
         });
       },
-    });
+      });
 
-    clientRef.current = client;
-    client.start();
+      clientRef.current = client;
+      client.start();
+    }
+
+    connect();
 
     return () => {
-      client.stop();
+      cancelled = true;
+      clearReconnectTimer();
+      try {
+        clientRef.current?.stop();
+      } catch {
+        // ignore
+      }
       clientRef.current = null;
     };
   }, [url, token]);

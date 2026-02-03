@@ -18,6 +18,8 @@ function estimateTokens(text: string) {
 }
 
 const TAB_STORAGE_KEY = 'cc.activeTab';
+const LANE_STORAGE_KEY = 'cc.activeLane';
+const LANES = ['Command Center', 'ARG', 'BizDev'] as const;
 
 function isAppTab(v: any): v is AppTab {
   return v === 'dashboard' || v === 'chat' || v === 'brain';
@@ -34,6 +36,7 @@ export default function ClientApp({
 
   const [tab, setTab] = useState<AppTab>('dashboard');
 
+  const [lane, setLane] = useState<(typeof LANES)[number]>('Command Center');
   const [sessionKey, setSessionKey] = useState('main');
 
   const {
@@ -131,12 +134,25 @@ export default function ClientApp({
   }, [connected]);
 
   const footerLeft = useMemo(() => {
-    return `Gateway: ${gatewayUrl}`;
-  }, [gatewayUrl]);
+    return `Lane: ${lane} • Gateway: ${gatewayUrl}`;
+  }, [gatewayUrl, lane]);
 
   const footerRight = useMemo(() => {
     return `Token est: ${tokenEstimate.toLocaleString()} • ${new Date().toLocaleTimeString()}`;
   }, [tokenEstimate]);
+
+  // Restore lane from localStorage.
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(LANE_STORAGE_KEY);
+      if (LANES.includes(stored as any)) {
+        setLane(stored as any);
+        setSessionKey(`${stored}:main`);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // Restore active tab from URL (?tab=brain) or localStorage.
   useEffect(() => {
@@ -222,6 +238,18 @@ export default function ClientApp({
     <Shell
       tab={tab}
       connected={connected}
+      lane={lane}
+      lanes={[...LANES] as any}
+      onLaneChange={(next) => {
+        const nextLane = next as any;
+        setLane(nextLane);
+        setSessionKey(`${nextLane}:main`);
+        clearLocalHistory();
+        try {
+          window.localStorage.setItem(LANE_STORAGE_KEY, String(nextLane));
+        } catch {}
+        toast.success('Lane switched', { description: `Now in: ${nextLane}` });
+      }}
       onTabChange={changeTab}
       left={
         <SidebarTasks

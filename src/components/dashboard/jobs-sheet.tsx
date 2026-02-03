@@ -13,7 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import type { JobTemplate } from '@/lib/jobs/store';
+import { PROTECTED_JOB_IDS, type JobTemplate } from '@/lib/jobs/store';
 import { JobEditor } from './job-editor';
 import { Pin, PinOff, Plus, Trash2 } from 'lucide-react';
 
@@ -105,11 +105,22 @@ export function JobsSheet({
                       <Button
                         size="icon"
                         variant="outline"
+                        disabled={PROTECTED_JOB_IDS.includes(j.id as any)}
                         onClick={() => {
+                          if (PROTECTED_JOB_IDS.includes(j.id as any)) return;
                           onRemove(j.id);
                           toast.success('Job deleted');
                         }}
-                        aria-label="Delete job"
+                        aria-label={
+                          PROTECTED_JOB_IDS.includes(j.id as any)
+                            ? 'This job card is protected and cannot be deleted'
+                            : 'Delete job'
+                        }
+                        title={
+                          PROTECTED_JOB_IDS.includes(j.id as any)
+                            ? 'Protected job card (cannot be deleted)'
+                            : 'Delete'
+                        }
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
