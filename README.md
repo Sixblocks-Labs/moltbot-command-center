@@ -1,5 +1,7 @@
 # Moltbot Command Center
 
+<!-- deploy-check: github→vercel auto-deploy -->
+
 All-in-one dashboard for managing your working relationship with Peter 💾.
 
 ## Stack
