@@ -18,7 +18,7 @@ export type JobTemplate = {
 
 // Bump version when default job set changes meaningfully.
 // (Forcing a refresh so updated baseline copy ships to all devices.)
-const STORAGE_KEY = 'mcc.jobTemplates.v3';
+const STORAGE_KEY = 'mcc.jobTemplates.v4';
 
 export function defaultJobs(): JobTemplate[] {
   // Use a fixed baseline timestamp to keep ordering stable across reloads.
@@ -165,7 +165,21 @@ export function defaultJobs(): JobTemplate[] {
       updatedAt: now,
     },
 
-    // 10) Plan the next chunk
+    // 10) ARG inspiration
+    {
+      id: 'arg-inspiration',
+      title: 'ARG inspiration',
+      progress: 'Collect + synthesize ARG design inspiration (weekly).',
+      when: 'I share ARG ideas or inspiration and want it captured + turned into actionable direction.',
+      prompt:
+        "Job: ARG inspiration\n\nContext:\n- I’m building an ARG (design, character development, mechanics, etc.).\n- I will share inspiration snippets throughout the week.\n\nAsk:\n1) Append whatever I share accretively to: ~/clawdbot/.moltbot/arginspo.md (NO edits; keep verbatim).\n2) Each Saturday 10:30 AM ET, review the preceding week only and create a journal entry titled \"ARG Inspiration\" with robust analysis + synthesis.\n\nOutput requirements:\n- Accretive capture: add new inspiration exactly as provided\n- Weekly journal: themes, character angles, mechanics hooks, risks, and 2–5 next experiments\n- Ship the weekly journal entry to me\n\nIf anything is unclear, ask before appending.",
+      icon: 'Sparkles',
+      pinned: true,
+      sortIndex: 10,
+      updatedAt: now,
+    },
+
+    // 11) Plan the next chunk
     {
       id: 'plan-next-chunk',
       title: 'Plan the next chunk',
@@ -175,7 +189,7 @@ export function defaultJobs(): JobTemplate[] {
         "Job: Plan the next chunk\n\nHere’s everything on my plate right now: [DESCRIBE].\n\nDo:\n- Look at what I’ve been working on in our recent sessions\n- Check ~/clawdbot-brain/tasks/ for open items\n- Review any active GitHub issues in Sixblocks-Labs\n\nThen give me a prioritized plan:\n- what to do today (max 3 things)\n- what to defer to this week\n- what to drop or delegate\n\nBe opinionated — I want your recommendation, not a menu.",
       icon: 'ListTodo',
       pinned: true,
-      sortIndex: 10,
+      sortIndex: 11,
       updatedAt: now,
     },
   ];
