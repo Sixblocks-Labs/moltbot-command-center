@@ -20,6 +20,7 @@ function estimateTokens(text: string) {
 const TAB_STORAGE_KEY = 'cc.activeTab';
 const LANE_STORAGE_KEY = 'cc.activeLane';
 const LANES_STORAGE_KEY = 'cc.lanes';
+const LANE_SESSION_KEYS_STORAGE_KEY = 'cc.laneSessionKeys';
 const DEFAULT_LANES = ['Command Center', 'ARG', 'BizDev'] as const;
 
 function isAppTab(v: any): v is AppTab {
@@ -39,6 +40,7 @@ export default function ClientApp({
 
   const [lanes, setLanes] = useState<string[]>([...DEFAULT_LANES]);
   const [lane, setLane] = useState<string>('Command Center');
+  const [laneSessionKeys, setLaneSessionKeys] = useState<Record<string, string>>({});
   const [sessionKey, setSessionKey] = useState('main');
 
   const {
@@ -69,6 +71,13 @@ export default function ClientApp({
       status: connected ? 'active' : 'idle',
     },
   ]);
+
+  // Keep sessionKey in sync with selected lane (per-lane session key if present).
+  useEffect(() => {
+    const k = laneSessionKeys[lane] || `${lane}:main`;
+    setSessionKey(k);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lane, laneSessionKeys]);
 
   useEffect(() => {
     let cancelled = false;
@@ -143,7 +152,7 @@ export default function ClientApp({
     return `Token est: ${tokenEstimate.toLocaleString()} • ${new Date().toLocaleTimeString()}`;
   }, [tokenEstimate]);
 
-  // Restore lanes + lane from localStorage.
+  // Restore lanes + lane + per-lane session keys from localStorage.
   useEffect(() => {
     try {
       const rawLanes = window.localStorage.getItem(LANES_STORAGE_KEY);
@@ -158,10 +167,22 @@ export default function ClientApp({
     }
 
     try {
+      const raw = window.localStorage.getItem(LANE_SESSION_KEYS_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          setLaneSessionKeys(parsed);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    try {
       const stored = window.localStorage.getItem(LANE_STORAGE_KEY);
       if (stored && stored.trim()) {
         setLane(stored);
-        setSessionKey(`${stored}:main`);
+        // sessionKey is derived after we know laneSessionKeys.
       }
     } catch {
       // ignore
@@ -272,7 +293,6 @@ export default function ClientApp({
           });
 
           setLane(cleaned);
-          setSessionKey(`${cleaned}:main`);
           clearLocalHistory();
           try {
             window.localStorage.setItem(LANE_STORAGE_KEY, cleaned);
@@ -284,7 +304,6 @@ export default function ClientApp({
 
         const nextLane = String(next);
         setLane(nextLane);
-        setSessionKey(`${nextLane}:main`);
         clearLocalHistory();
         try {
           window.localStorage.setItem(LANE_STORAGE_KEY, String(nextLane));
@@ -312,11 +331,18 @@ export default function ClientApp({
             window.location.reload();
           }}
           onNewSession={() => {
-            const key = `ui-${Date.now().toString(36)}`;
+            const key = `${lane}:ui-${Date.now().toString(36)}`;
+            setLaneSessionKeys((prev) => {
+              const next = { ...prev, [lane]: key };
+              try {
+                window.localStorage.setItem(LANE_SESSION_KEYS_STORAGE_KEY, JSON.stringify(next));
+              } catch {}
+              return next;
+            });
             setSessionKey(key);
             clearLocalHistory();
-            toast.success('New session', {
-              description: `Switched to sessionKey: ${key}`,
+            toast.success('New session (lane)', {
+              description: `Now using a fresh session for ${lane}.`,
             });
           }}
           onStopTask={() => {
