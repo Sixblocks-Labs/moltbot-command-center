@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,7 @@ export function ChatPanel({
 }: {
   connected: boolean;
   messages: ChatMessage[];
-  onSend: (text: string) => Promise<boolean>;
+  onSend: (text: string) => void;
 }) {
   const [text, setText] = useState('');
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -33,11 +32,8 @@ export function ChatPanel({
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       if (!text.trim()) return;
-      (async () => {
-        const ok = await onSend(text.trim());
-        if (ok) setText('');
-        else toast.error('Send failed', { description: 'Gateway did not accept the message.' });
-      })();
+      onSend(text.trim());
+      setText('');
       return;
     }
 
@@ -168,11 +164,10 @@ export function ChatPanel({
             className="min-h-[44px] resize-none"
           />
           <Button
-            onClick={async () => {
+            onClick={() => {
               if (!text.trim()) return;
-              const ok = await onSend(text.trim());
-              if (ok) setText('');
-              else toast.error('Send failed', { description: 'Gateway did not accept the message.' });
+              onSend(text.trim());
+              setText('');
             }}
             disabled={!connected}
           >

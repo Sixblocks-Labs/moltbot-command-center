@@ -219,12 +219,12 @@ export function useGatewayChat(opts: { url: string; token: string; sessionKey?: 
     };
   }, [url, token]);
 
-  async function sendUserMessage(content: string): Promise<boolean> {
+  function sendUserMessage(content: string) {
     const msg: ChatMessage = { id: uid(), role: 'user', content, ts: Date.now() };
     setMessages((prev) => [...prev, msg]);
 
     const client = clientRef.current;
-    if (!client || !connected) return false;
+    if (!client || !connected) return;
 
     const idempotencyKey = uid();
 
@@ -245,45 +245,31 @@ export function useGatewayChat(opts: { url: string; token: string; sessionKey?: 
     );
 
     // Ask gateway to start a run; response includes canonical runId
-    try {
-      const res = await client.requestAsync('chat.send', {
+    client
+      .requestAsync('chat.send', {
         sessionKey,
         message: content,
         idempotencyKey,
+      })
+      .then((res) => {
+        const runId = String(res?.runId ?? idempotencyKey);
+        setTasks((prev) => {
+          const existing = prev.find((t) => t.runId === idempotencyKey);
+          const title = existing?.title ?? summary.title ?? `Run ${runId.slice(0, 8)}`;
+          const subtitle = existing?.subtitle ?? summary.subtitle;
+          const next = prev.filter((t) => t.runId !== idempotencyKey);
+          return [{ runId, title, subtitle, status: 'active' as const, updatedAt: Date.now() }, ...next].slice(0, 10);
+        });
+      })
+      .catch(() => {
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.runId === idempotencyKey
+              ? { ...t, status: 'error' as const, updatedAt: Date.now() }
+              : t
+          )
+        );
       });
-
-      const runId = String(res?.runId ?? idempotencyKey);
-      setTasks((prev) => {
-        const existing = prev.find((t) => t.runId === idempotencyKey);
-        const title = existing?.title ?? summary.title ?? `Run ${runId.slice(0, 8)}`;
-        const subtitle = existing?.subtitle ?? summary.subtitle;
-        const next = prev.filter((t) => t.runId !== idempotencyKey);
-        return [{ runId, title, subtitle, status: 'active' as const, updatedAt: Date.now() }, ...next].slice(0, 10);
-      });
-
-      return true;
-    } catch {
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.runId === idempotencyKey
-            ? { ...t, status: 'error' as const, updatedAt: Date.now() }
-            : t
-        )
-      );
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: uid(),
-          role: 'system',
-          content: 'Error: failed to send message to gateway (chat.send).',
-          ts: Date.now(),
-          meta: { runId: idempotencyKey },
-        },
-      ]);
-
-      return false;
-    }
   }
 
   async function request(method: string, params: any) {
