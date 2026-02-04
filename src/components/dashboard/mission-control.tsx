@@ -53,7 +53,6 @@ export function MissionControl({
   } | null>(null);
 
   const [argTagByJobId, setArgTagByJobId] = useState<Record<string, string>>({
-    'arg-infrastructure': ARG_TAGS[0],
     'arg-inspiration': ARG_TAGS[0],
   });
 
@@ -252,7 +251,7 @@ export function MissionControl({
                       <span className="text-slate-200/80">When:</span> {j.when}
                     </div>
 
-                    {j.id === 'arg-infrastructure' || j.id === 'arg-inspiration' ? (
+                    {j.id === 'arg-inspiration' ? (
                       <div className="mt-3 flex items-center gap-2">
                         <div className="text-[11px] text-muted-foreground">Tag</div>
                         <select

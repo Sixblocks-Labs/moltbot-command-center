@@ -5,7 +5,6 @@ export const PROTECTED_JOB_IDS = [
   'prospect-research',
   'write-publish',
   'arg-inspiration',
-  'arg-infrastructure',
 ] as const;
 
 // Jobs removed from the product (not just unpinned). We filter these out even if
@@ -41,7 +40,7 @@ export type JobTemplate = {
 
 // Bump version when default job set changes meaningfully.
 // (Forcing a refresh so updated baseline copy ships to all devices.)
-const STORAGE_KEY_BASE = 'mcc.jobTemplates.v8';
+const STORAGE_KEY_BASE = 'mcc.jobTemplates.v9';
 
 function slugLane(lane?: string) {
   return String(lane || 'global')
@@ -126,20 +125,6 @@ export function defaultJobs(): JobTemplate[] {
       icon: 'Sparkles',
       pinned: true,
       sortIndex: 10,
-      updatedAt: now,
-    },
-
-    // 11) ARG infrastructure
-    {
-      id: 'arg-infrastructure',
-      title: 'ARG infrastructure',
-      progress: 'Capture + organize ARG infrastructure decisions (tagged).',
-      when: 'We’re deciding how the ARG runs: platforms, trail markers, timelines, community ops, etc.',
-      prompt:
-        "Job: ARG infrastructure\n\nContext:\n- We’re designing the infrastructure layer of an ARG (delivery surfaces, operations, and player journey scaffolding).\n\nAsk:\n- I’ll paste an infrastructure idea or a decision.\n- You will capture it accretively in ~/clawdbot/.moltbot/arginspo.md with a timestamp header and the selected Tag (single tag).\n\nTag: [SELECT_ONE_TAG]\n\nADR-lite (optional, recommended):\n- Decision:\n- Why (1–3 bullets):\n- Tradeoffs (pros/cons):\n- Next test (what we’ll try to validate):\n\nRules:\n- NO edits to my pasted content.\n- Prepend your appended block with:\n  - `## <timestamp ET>`\n  - `Tag: <Tag>`\n\nThen confirm back with the exact header + tag you appended.",
-      icon: 'Wrench',
-      pinned: true,
-      sortIndex: 11,
       updatedAt: now,
     },
 
