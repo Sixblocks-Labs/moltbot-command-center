@@ -278,7 +278,7 @@ export function MissionControl({
                     size="sm"
                     className="shrink-0"
                     onClick={() => {
-                      const isArgJob = j.id === 'arg-infrastructure' || j.id === 'arg-inspiration';
+                      const isArgJob = j.id === 'arg-inspiration';
                       const tag = isArgJob ? (argTagByJobId[j.id] || ARG_TAGS[0]) : undefined;
                       const prompt = isArgJob
                         ? `${j.prompt.replace('[SELECT_ONE_TAG]', tag || '')}\n\nSelected Tag: ${tag}`
