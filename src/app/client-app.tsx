@@ -230,9 +230,16 @@ export default function ClientApp({
     const p = job.id === 'coding-assistant'
       ? job.prompt.replace('[LANE]', lane)
       : job.prompt;
-    sendUserMessage(p);
-    toast.success(`Hired for: ${job.title}`, {
-      description: 'Prompt sent to Chat.',
+    sendUserMessage(p).then((ok) => {
+      if (ok) {
+        toast.success(`Hired for: ${job.title}`, {
+          description: 'Prompt sent to Chat.',
+        });
+      } else {
+        toast.error('Hire failed', {
+          description: 'Gateway did not accept the prompt. Check connection + try again.',
+        });
+      }
     });
   }
 
